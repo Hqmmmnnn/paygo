@@ -1,0 +1,47 @@
+version: "3.7"
+services:
+  db:
+    image: postgres:12.1-alpine
+    container_name: postgres
+    ports:
+      - 5432:5432
+    volumes:
+      - ./.data/:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: hqqm
+      POSTGRES_PASSWORD: hqqm1234
+      POSTGRES_DB: paygo
+      PGDATA: /var/lib/postgresql/data/pgdata
+    restart: always
+    networks:
+      - paygoinnet
+
+  app:
+    build: .
+    container_name: application
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/usr/src/app
+    restart: always
+    depends_on:
+      - db
+    networks:
+      - paygoinnet
+
+  nginx:
+    image: nginx:1.17.8-alpine
+    container_name: nginx
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/nginx.conf
+    depends_on:
+      - app
+    restart: always
+    ports:
+      - 8989:8989
+    networks:
+      - paygoinnet
+
+networks:
+  paygoinnet:
+    driver: bridge

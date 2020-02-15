@@ -1,0 +1,5 @@
+dbUser: hqqm
+dbPassword: hqqm1234
+dbName: paygo
+dbHost: postgres
+dbPort: 5432
