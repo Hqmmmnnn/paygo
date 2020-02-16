@@ -23,8 +23,8 @@ type App struct {
 }
 
 // NewApp ...
-func NewApp() *App {
-	db, err := maindb.NewPgUserStorage()
+func NewApp(dsn string) *App {
+	db, err := maindb.NewPgUserStorage(dsn)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -68,6 +68,6 @@ func (app *App) Run(port string) error {
 
 func hi(w http.ResponseWriter, r *http.Request) {
 	if _, err := w.Write([]byte(fmt.Sprintf("Hiii"))); err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway, )
+		http.Error(w, err.Error(), http.StatusBadGateway)
 	}
 }

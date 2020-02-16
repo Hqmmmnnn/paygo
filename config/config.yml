@@ -1,5 +1,8 @@
-dbUser: hqqm
-dbPassword: hqqm1234
-dbName: paygo
-dbHost: postgres
-dbPort: 5432
+port: 8080
+
+postgres:
+  user: hqqm
+  password: hqqm1234
+  name: paygo
+  host: postgres
+  port: 5432

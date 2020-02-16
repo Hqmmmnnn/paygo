@@ -30,7 +30,7 @@ type userInput struct {
 // CreateUser ...
 func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var user *userInput = &userInput{}
+	user := &userInput{}
 
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
