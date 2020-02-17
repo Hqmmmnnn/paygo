@@ -27,4 +27,3 @@ func NewPgStorage(dsn string) (*pgStorage, error) {
 func (pg *pgStorage) GetDB() *sqlx.DB {
 	return pg.db
 }
-

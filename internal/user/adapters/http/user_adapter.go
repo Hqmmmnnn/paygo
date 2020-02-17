@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Hqqm/paygo/internal/user/domain/interfaces"
+	"github.com/Hqqm/paygo/internal/user/interfaces"
 )
 
 // UserService ...

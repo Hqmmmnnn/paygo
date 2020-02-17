@@ -3,7 +3,7 @@ package interfaces
 import (
 	"context"
 
-	"github.com/Hqqm/paygo/internal/user/domain/entities"
+	"github.com/Hqqm/paygo/internal/user/entities"
 )
 
 type UserUsecases interface {

@@ -3,8 +3,8 @@ package repository
 import (
 	"context"
 
-	"github.com/Hqqm/paygo/internal/user/domain/entities"
-	"github.com/Hqqm/paygo/internal/user/domain/interfaces"
+	"github.com/Hqqm/paygo/internal/user/entities"
+	"github.com/Hqqm/paygo/internal/user/interfaces"
 	"github.com/jmoiron/sqlx"
 )
 

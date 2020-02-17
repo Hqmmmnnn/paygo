@@ -12,19 +12,19 @@ import (
 
 	"github.com/Hqqm/paygo/internal/maindb"
 	_userHttpAdapter "github.com/Hqqm/paygo/internal/user/adapters/http"
-	"github.com/Hqqm/paygo/internal/user/domain/repository"
-	"github.com/Hqqm/paygo/internal/user/domain/usescases"
+	"github.com/Hqqm/paygo/internal/user/repository"
+	"github.com/Hqqm/paygo/internal/user/usescases"
 	"github.com/gorilla/mux"
 )
 
 // App ...
-type App struct {
+type app struct {
 	httpServer  *http.Server
 	userService *_userHttpAdapter.UserService
 }
 
 // NewApp ...
-func NewApp(dsn string) *App {
+func NewApp(dsn string) *app {
 	pg, err := maindb.NewPgStorage(dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -34,11 +34,13 @@ func NewApp(dsn string) *App {
 	userUC := usescases.NewUserUsecases(userRep)
 	userService := _userHttpAdapter.NewUserService(userUC)
 
-	return &App{userService: userService}
+	return &app{
+		userService: userService,
+	}
 }
 
 // Run ...
-func (app *App) Run(port string) error {
+func (app *app) Run(port string) error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", hi)
 	r.HandleFunc("/createUser", app.userService.CreateUser).Methods("POST")
