@@ -10,9 +10,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/adapters/httpserver"
-	"github.com/Hqqm/paygo/internal/domain/usescases"
 	"github.com/Hqqm/paygo/internal/maindb"
+	_userHttpAdapter "github.com/Hqqm/paygo/internal/user/adapters/http"
+	"github.com/Hqqm/paygo/internal/user/domain/repository"
+	"github.com/Hqqm/paygo/internal/user/domain/usescases"
 	"github.com/gorilla/mux"
 )
 
@@ -24,24 +25,25 @@ type App struct {
 
 // NewApp ...
 func NewApp(dsn string) *App {
-	db, err := maindb.NewPgUserStorage(dsn)
+	pg, err := maindb.NewPgStorage(dsn)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	return &App{
-		userUsecases: usescases.UserUsecases{UserRepository: db},
+		userUsecases: usescases.UserUsecases{UserRepository: repository.NewPgUserRepository(pg.Db)},
 	}
 
 }
 
 // Run ...
 func (app *App) Run(port string) error {
-	handler := httpserver.NewHandler(app.userUsecases)
+	userService := _userHttpAdapter.NewUserService(app.userUsecases)
 
 	r := mux.NewRouter()
 	r.HandleFunc("/", hi)
-	r.HandleFunc("/createUser", handler.CreateUser).Methods("POST")
+	r.HandleFunc("/createUser", userService.CreateUser).Methods("POST")
 
 	app.httpServer = &http.Server{
 		Handler:      r,

@@ -3,14 +3,18 @@ package usescases
 import (
 	"context"
 
-	"github.com/Hqqm/paygo/internal/domain/entities"
-	"github.com/Hqqm/paygo/internal/domain/interfaces"
+	"github.com/Hqqm/paygo/internal/user/domain/entities"
+	"github.com/Hqqm/paygo/internal/user/domain/interfaces"
 	uuid "github.com/satori/go.uuid"
 )
 
 // UserUsecases ...
 type UserUsecases struct {
 	UserRepository interfaces.UserRepository
+}
+
+func NewUserUsecases(ur interfaces.UserRepository) UserUsecases {
+	return UserUsecases{UserRepository: ur}
 }
 
 // CreateUser ...

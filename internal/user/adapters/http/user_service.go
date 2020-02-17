@@ -1,20 +1,20 @@
-package httpserver
+package http
 
 import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Hqqm/paygo/internal/domain/usescases"
+	"github.com/Hqqm/paygo/internal/user/domain/usescases"
 )
 
-// Handler ...
-type Handler struct {
+// UserService ...
+type UserService struct {
 	UserUsecases usescases.UserUsecases
 }
 
 // NewHandler ...
-func NewHandler(userUC usescases.UserUsecases) *Handler {
-	return &Handler{
+func NewUserService(userUC usescases.UserUsecases) *UserService {
+	return &UserService{
 		UserUsecases: userUC,
 	}
 }
@@ -28,7 +28,7 @@ type userInput struct {
 }
 
 // CreateUser ...
-func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (us *UserService) CreateUser(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := &userInput{}
 
@@ -36,7 +36,7 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	_, err := h.UserUsecases.CreateUser(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
+	_, err := us.UserUsecases.CreateUser(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 	}
