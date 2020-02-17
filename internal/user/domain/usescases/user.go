@@ -9,16 +9,16 @@ import (
 )
 
 // UserUsecases ...
-type UserUsecases struct {
+type userUsecases struct {
 	UserRepository interfaces.UserRepository
 }
 
-func NewUserUsecases(ur interfaces.UserRepository) UserUsecases {
-	return UserUsecases{UserRepository: ur}
+func NewUserUsecases(ur interfaces.UserRepository) interfaces.UserUsecases {
+	return &userUsecases{UserRepository: ur}
 }
 
 // CreateUser ...
-func (uc *UserUsecases) CreateUser(ctx context.Context, email string, password string, firstName string, lastName string, patronymic string) (*entities.User, error) {
+func (uc *userUsecases) CreateUser(ctx context.Context, email string, password string, firstName string, lastName string, patronymic string) (*entities.User, error) {
 	user := &entities.User{
 		ID:         uuid.NewV4(),
 		Email:      email,

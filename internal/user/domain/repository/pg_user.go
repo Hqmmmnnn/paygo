@@ -8,17 +8,17 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type PgUserRepository struct {
+type pgUserRepository struct {
 	db *sqlx.DB
 }
 
 // NewPgUserStorage ...
 func NewPgUserRepository(db *sqlx.DB) interfaces.UserRepository {
-	return &PgUserRepository{db: db}
+	return &pgUserRepository{db: db}
 }
 
 // SaveUser ...
-func (pg *PgUserRepository) SaveUser(ctx context.Context, user *entities.User) error {
+func (pg *pgUserRepository) SaveUser(ctx context.Context, user *entities.User) error {
 	query := `
 		INSERT INTO users(id, email, password, first_name, last_name, patronymic)
 		VALUES (:id, :email, :password, :first_name, :last_name, :patronymic)

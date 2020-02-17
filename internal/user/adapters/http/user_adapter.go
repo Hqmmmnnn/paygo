@@ -4,16 +4,16 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/Hqqm/paygo/internal/user/domain/usescases"
+	"github.com/Hqqm/paygo/internal/user/domain/interfaces"
 )
 
 // UserService ...
 type UserService struct {
-	UserUsecases usescases.UserUsecases
+	UserUsecases interfaces.UserUsecases
 }
 
 // NewHandler ...
-func NewUserService(userUC usescases.UserUsecases) *UserService {
+func NewUserService(userUC interfaces.UserUsecases) *UserService {
 	return &UserService{
 		UserUsecases: userUC,
 	}

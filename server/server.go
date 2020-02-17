@@ -19,31 +19,29 @@ import (
 
 // App ...
 type App struct {
-	httpServer   *http.Server
-	userUsecases usescases.UserUsecases
+	httpServer  *http.Server
+	userService *_userHttpAdapter.UserService
 }
 
 // NewApp ...
 func NewApp(dsn string) *App {
 	pg, err := maindb.NewPgStorage(dsn)
-
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	return &App{
-		userUsecases: usescases.UserUsecases{UserRepository: repository.NewPgUserRepository(pg.Db)},
-	}
+	userRep := repository.NewPgUserRepository(pg.GetDB())
+	userUC := usescases.NewUserUsecases(userRep)
+	userService := _userHttpAdapter.NewUserService(userUC)
 
+	return &App{userService: userService}
 }
 
 // Run ...
 func (app *App) Run(port string) error {
-	userService := _userHttpAdapter.NewUserService(app.userUsecases)
-
 	r := mux.NewRouter()
 	r.HandleFunc("/", hi)
-	r.HandleFunc("/createUser", userService.CreateUser).Methods("POST")
+	r.HandleFunc("/createUser", app.userService.CreateUser).Methods("POST")
 
 	app.httpServer = &http.Server{
 		Handler:      r,
