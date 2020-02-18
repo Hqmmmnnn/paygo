@@ -11,9 +11,9 @@ import (
 	"time"
 
 	"github.com/Hqqm/paygo/internal/maindb"
-	_userHttpAdapter "github.com/Hqqm/paygo/internal/user/adapters/http"
-	"github.com/Hqqm/paygo/internal/user/repository"
-	"github.com/Hqqm/paygo/internal/user/usescases"
+	_userHttpAdapter "github.com/Hqqm/paygo/internal/auth/adapters/http"
+	"github.com/Hqqm/paygo/internal/auth/repository"
+	"github.com/Hqqm/paygo/internal/auth/usescases"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
@@ -21,7 +21,7 @@ import (
 // App ...
 type app struct {
 	httpServer  *http.Server
-	userService *_userHttpAdapter.UserService
+	authService *_userHttpAdapter.AuthService
 }
 
 // NewApp ...
@@ -35,11 +35,11 @@ func NewApp(dsn string) *app {
 	tokenTtl := viper.GetDuration("auth.token_ttl")
 
 	userRep := repository.NewPgUserRepository(pg.GetDB())
-	userUC := usescases.NewUserUsecases(userRep, signingKey, tokenTtl)
-	userService := _userHttpAdapter.NewUserService(userUC)
+	authUC := usescases.NewAuthUsecases(userRep, signingKey, tokenTtl)
+	authService := _userHttpAdapter.NewAuthService(authUC)
 
 	return &app{
-		userService: userService,
+		authService: authService,
 	}
 }
 
@@ -47,8 +47,10 @@ func NewApp(dsn string) *app {
 func (app *app) Run(port string) error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", hi)
-	r.HandleFunc("/createUser", app.userService.CreateUser).Methods("POST")
-	r.HandleFunc("/signIn", app.userService.SignIn).Methods("POST")
+
+	auth := r.PathPrefix("/auth").Subrouter()
+	auth.HandleFunc("/signUp", app.authService.SignUp).Methods("POST")
+	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
 
 	app.httpServer = &http.Server{
 		Handler:      r,

@@ -5,18 +5,18 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Hqqm/paygo/internal/user/interfaces"
+	"github.com/Hqqm/paygo/internal/auth/interfaces"
 )
 
 // UserService ...
-type UserService struct {
-	UserUsecases interfaces.UserUsecases
+type AuthService struct {
+	AuthUsecases interfaces.AuthUsecases
 }
 
 // NewHandler ...
-func NewUserService(userUC interfaces.UserUsecases) *UserService {
-	return &UserService{
-		UserUsecases: userUC,
+func NewAuthService(authUsecases interfaces.AuthUsecases) *AuthService {
+	return &AuthService{
+		AuthUsecases: authUsecases,
 	}
 }
 
@@ -29,7 +29,7 @@ type userInput struct {
 }
 
 // CreateUser ...
-func (us *UserService) CreateUser(w http.ResponseWriter, r *http.Request) {
+func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	user := &userInput{}
 
@@ -37,7 +37,7 @@ func (us *UserService) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	res, err := us.UserUsecases.CreateUser(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
+	res, err := as.AuthUsecases.SignUp(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 	}
@@ -55,14 +55,15 @@ func (us *UserService) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 type signInInput struct {
-	Email string `json:"email"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 type signInResponse struct {
 	Token string `json:"token"`
 }
 
-func (us *UserService) SignIn(w http.ResponseWriter, r *http.Request) {
+func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	signIn := &signInInput{}
 
@@ -70,12 +71,12 @@ func (us *UserService) SignIn(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	token, err := us.UserUsecases.SignIn(ctx, signIn.Email)
+	token, err := as.AuthUsecases.SignIn(ctx, signIn.Email, signIn.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 	}
 
-	payload, err := json.Marshal(&signInResponse{Token:token})
+	payload, err := json.Marshal(&signInResponse{Token: token})
 	if err != nil {
 		log.Println(err)
 	}

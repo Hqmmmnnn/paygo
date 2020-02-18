@@ -17,7 +17,7 @@ func InitConfig(cfgPath string) (*Config, error) {
 		return nil, err
 	}
 
-	dbUser := viper.GetString("postgres.user")
+	dbUser := viper.GetString("postgres.auth")
 	dbPwd := viper.GetString("postgres.password")
 	dbHost := viper.GetString("postgres.host")
 	dbPort := viper.GetInt("postgres.port")
