@@ -2,6 +2,7 @@ package http
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/Hqqm/paygo/internal/user/interfaces"
@@ -36,8 +37,51 @@ func (us *UserService) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	_, err := us.UserUsecases.CreateUser(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
+	res, err := us.UserUsecases.CreateUser(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
 	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+	}
+
+	payload, err := json.Marshal(res)
+	if err != nil {
+		log.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(payload); err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+	}
+
+}
+
+type signInInput struct {
+	Email string `json:"email"`
+}
+
+type signInResponse struct {
+	Token string `json:"token"`
+}
+
+func (us *UserService) SignIn(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	signIn := &signInInput{}
+
+	if err := json.NewDecoder(r.Body).Decode(signIn); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+	}
+
+	token, err := us.UserUsecases.SignIn(ctx, signIn.Email)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadGateway)
+	}
+
+	payload, err := json.Marshal(&signInResponse{Token:token})
+	if err != nil {
+		log.Println(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	if _, err := w.Write(payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 	}
 }

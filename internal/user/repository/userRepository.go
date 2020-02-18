@@ -19,7 +19,7 @@ func NewPgUserRepository(db *sqlx.DB) interfaces.UserRepository {
 
 // SaveUser ...
 func (pg *pgUserRepository) SaveUser(ctx context.Context, user *entities.User) error {
-	query := `
+	query := `	
 		INSERT INTO users(id, email, password, first_name, last_name, patronymic)
 		VALUES (:id, :email, :password, :first_name, :last_name, :patronymic)
 	`
@@ -34,4 +34,15 @@ func (pg *pgUserRepository) SaveUser(ctx context.Context, user *entities.User) e
 	})
 
 	return err
+}
+
+func (pg *pgUserRepository) GetUser(ctx context.Context, email string) (*entities.User, error) {
+	user := entities.User{}
+
+	err := pg.db.Get(&user, "SELECT * FROM users WHERE email=$1", email)
+
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
 }

@@ -1,5 +1,10 @@
 port: 8080
 
+auth:
+  hash_salt: "hash_salt"
+  signing_key: "key"
+  token_ttl: 86400
+
 postgres:
   user: hqqm
   password: hqqm1234

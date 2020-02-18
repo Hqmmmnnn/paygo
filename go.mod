@@ -3,6 +3,7 @@ module github.com/Hqqm/paygo
 go 1.13
 
 require (
+	github.com/dgrijalva/jwt-go/v4 v4.0.0-preview1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/jmoiron/sqlx v1.2.0
 	github.com/lib/pq v1.3.0

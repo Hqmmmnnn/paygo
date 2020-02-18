@@ -15,6 +15,7 @@ import (
 	"github.com/Hqqm/paygo/internal/user/repository"
 	"github.com/Hqqm/paygo/internal/user/usescases"
 	"github.com/gorilla/mux"
+	"github.com/spf13/viper"
 )
 
 // App ...
@@ -30,8 +31,11 @@ func NewApp(dsn string) *app {
 		log.Fatal(err)
 	}
 
+	signingKey := []byte(viper.GetString("auth.signing_key"))
+	tokenTtl := viper.GetDuration("auth.token_ttl")
+
 	userRep := repository.NewPgUserRepository(pg.GetDB())
-	userUC := usescases.NewUserUsecases(userRep)
+	userUC := usescases.NewUserUsecases(userRep, signingKey, tokenTtl)
 	userService := _userHttpAdapter.NewUserService(userUC)
 
 	return &app{
@@ -44,6 +48,7 @@ func (app *app) Run(port string) error {
 	r := mux.NewRouter()
 	r.HandleFunc("/", hi)
 	r.HandleFunc("/createUser", app.userService.CreateUser).Methods("POST")
+	r.HandleFunc("/signIn", app.userService.SignIn).Methods("POST")
 
 	app.httpServer = &http.Server{
 		Handler:      r,
