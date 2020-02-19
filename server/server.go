@@ -10,22 +10,22 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/maindb"
-	_userHttpAdapter "github.com/Hqqm/paygo/internal/auth/adapters/http"
+	_authHttpAdapter "github.com/Hqqm/paygo/internal/auth/adapters/http"
 	"github.com/Hqqm/paygo/internal/auth/repository"
 	"github.com/Hqqm/paygo/internal/auth/usescases"
+	"github.com/Hqqm/paygo/internal/maindb"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
 
 // App ...
-type app struct {
+type App struct {
 	httpServer  *http.Server
-	authService *_userHttpAdapter.AuthService
+	authService *_authHttpAdapter.AuthService
 }
 
 // NewApp ...
-func NewApp(dsn string) *app {
+func NewApp(dsn string) *App {
 	pg, err := maindb.NewPgStorage(dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -36,21 +36,25 @@ func NewApp(dsn string) *app {
 
 	userRep := repository.NewPgUserRepository(pg.GetDB())
 	authUC := usescases.NewAuthUsecases(userRep, signingKey, tokenTtl)
-	authService := _userHttpAdapter.NewAuthService(authUC)
+	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
+	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
 
-	return &app{
+	return &App{
 		authService: authService,
 	}
 }
 
 // Run ...
-func (app *app) Run(port string) error {
+func (app *App) Run(port string) error {
 	r := mux.NewRouter()
-	r.HandleFunc("/", hi)
 
 	auth := r.PathPrefix("/auth").Subrouter()
 	auth.HandleFunc("/signUp", app.authService.SignUp).Methods("POST")
 	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
+
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(app.authService.Middleware.VerifyToken)
+	api.HandleFunc("/hi", hi)
 
 	app.httpServer = &http.Server{
 		Handler:      r,
@@ -76,7 +80,11 @@ func (app *app) Run(port string) error {
 }
 
 func hi(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte(fmt.Sprintf("Hiii"))); err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
+	if user := r.Context().Value("user"); user != nil {
+		w.Write([]byte(fmt.Sprintf("hiii %+v", user)))
+	} else {
+		if _, err := w.Write([]byte(fmt.Sprintf("Hiii"))); err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		}
 	}
 }

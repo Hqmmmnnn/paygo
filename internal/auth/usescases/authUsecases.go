@@ -2,6 +2,8 @@ package usescases
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/Hqqm/paygo/internal/auth/entities"
@@ -75,4 +77,23 @@ func (ac *AuthUsecases) SignIn(ctx context.Context, email, password string) (str
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	return token.SignedString(ac.signingKey)
+}
+
+func (ac *AuthUsecases) ParseToken(ctx context.Context, accessToken string) (*entities.User, error) {
+	token, err := jwt.ParseWithClaims(accessToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
+		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+		}
+		return ac.signingKey, nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	if claims, ok := token.Claims.(*AuthClaims); ok && token.Valid {
+		return claims.User, nil
+	}
+
+	return nil, errors.New("invalid access token")
 }

@@ -2,7 +2,6 @@ package http
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 
 	"github.com/Hqqm/paygo/internal/auth/interfaces"
@@ -11,16 +10,18 @@ import (
 // UserService ...
 type AuthService struct {
 	AuthUsecases interfaces.AuthUsecases
+	Middleware   AuthMiddleware
 }
 
 // NewHandler ...
-func NewAuthService(authUsecases interfaces.AuthUsecases) *AuthService {
+func NewAuthService(authUsecases interfaces.AuthUsecases, authMiddleware AuthMiddleware) *AuthService {
 	return &AuthService{
 		AuthUsecases: authUsecases,
+		Middleware:   authMiddleware,
 	}
 }
 
-type userInput struct {
+type registeringUser struct {
 	Email      string `json:"email"`
 	Password   string `json:"password"`
 	FirstName  string `json:"first_name"`
@@ -31,30 +32,33 @@ type userInput struct {
 // CreateUser ...
 func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	user := &userInput{}
+	user := &registeringUser{}
 
 	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	res, err := as.AuthUsecases.SignUp(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	payload, err := json.Marshal(res)
 	if err != nil {
-		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	if _, err := w.Write(payload); err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
+		return
 	}
-
 }
 
-type signInInput struct {
+type signInUser struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -65,20 +69,20 @@ type signInResponse struct {
 
 func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	signIn := &signInInput{}
+	signInUser := &signInUser{}
 
-	if err := json.NewDecoder(r.Body).Decode(signIn); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(signInUser); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	token, err := as.AuthUsecases.SignIn(ctx, signIn.Email, signIn.Password)
+	token, err := as.AuthUsecases.SignIn(ctx, signInUser.Email, signInUser.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	payload, err := json.Marshal(&signInResponse{Token: token})
 	if err != nil {
-		log.Println(err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
