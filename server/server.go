@@ -10,22 +10,22 @@ import (
 	"syscall"
 	"time"
 
+	_authHttpAdapter "github.com/Hqqm/paygo/internal/auth/adapters/http"
+	"github.com/Hqqm/paygo/internal/auth/repository"
+	"github.com/Hqqm/paygo/internal/auth/usescases"
 	"github.com/Hqqm/paygo/internal/maindb"
-	_userHttpAdapter "github.com/Hqqm/paygo/internal/user/adapters/http"
-	"github.com/Hqqm/paygo/internal/user/repository"
-	"github.com/Hqqm/paygo/internal/user/usescases"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
 
 // App ...
-type app struct {
+type App struct {
 	httpServer  *http.Server
-	userService *_userHttpAdapter.UserService
+	authService *_authHttpAdapter.AuthService
 }
 
 // NewApp ...
-func NewApp(dsn string) *app {
+func NewApp(dsn string) *App {
 	pg, err := maindb.NewPgStorage(dsn)
 	if err != nil {
 		log.Fatal(err)
@@ -35,20 +35,26 @@ func NewApp(dsn string) *app {
 	tokenTtl := viper.GetDuration("auth.token_ttl")
 
 	userRep := repository.NewPgUserRepository(pg.GetDB())
-	userUC := usescases.NewUserUsecases(userRep, signingKey, tokenTtl)
-	userService := _userHttpAdapter.NewUserService(userUC)
+	authUC := usescases.NewAuthUsecases(userRep, signingKey, tokenTtl)
+	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
+	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
 
-	return &app{
-		userService: userService,
+	return &App{
+		authService: authService,
 	}
 }
 
 // Run ...
-func (app *app) Run(port string) error {
+func (app *App) Run(port string) error {
 	r := mux.NewRouter()
-	r.HandleFunc("/", hi)
-	r.HandleFunc("/createUser", app.userService.CreateUser).Methods("POST")
-	r.HandleFunc("/signIn", app.userService.SignIn).Methods("POST")
+
+	auth := r.PathPrefix("/auth").Subrouter()
+	auth.HandleFunc("/signUp", app.authService.SignUp).Methods("POST")
+	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
+
+	api := r.PathPrefix("/api").Subrouter()
+	api.Use(app.authService.Middleware.VerifyToken)
+	api.HandleFunc("/hi", hi)
 
 	app.httpServer = &http.Server{
 		Handler:      r,
@@ -74,7 +80,11 @@ func (app *app) Run(port string) error {
 }
 
 func hi(w http.ResponseWriter, r *http.Request) {
-	if _, err := w.Write([]byte(fmt.Sprintf("Hiii"))); err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
+	if user := r.Context().Value("user"); user != nil {
+		w.Write([]byte(fmt.Sprintf("hiii %+v", user)))
+	} else {
+		if _, err := w.Write([]byte(fmt.Sprintf("Hiii"))); err != nil {
+			http.Error(w, err.Error(), http.StatusBadGateway)
+		}
 	}
 }
