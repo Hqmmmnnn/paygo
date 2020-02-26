@@ -26,12 +26,12 @@ func (am *AuthMiddleware) VerifyToken(next http.Handler) http.Handler {
 		}
 
 		ctx := r.Context()
-		user, err := am.usecases.ParseToken(ctx, header)
+		account, err := am.usecases.ParseToken(ctx, header)
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 		}
 
-		ctx = context.WithValue(ctx, "user", user)
+		ctx = context.WithValue(ctx, "account", account)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

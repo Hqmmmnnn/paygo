@@ -7,13 +7,11 @@ import (
 	"github.com/Hqqm/paygo/internal/auth/interfaces"
 )
 
-// UserService ...
 type AuthService struct {
 	AuthUsecases interfaces.AuthUsecases
 	Middleware   AuthMiddleware
 }
 
-// NewHandler ...
 func NewAuthService(authUsecases interfaces.AuthUsecases, authMiddleware AuthMiddleware) *AuthService {
 	return &AuthService{
 		AuthUsecases: authUsecases,
@@ -21,31 +19,28 @@ func NewAuthService(authUsecases interfaces.AuthUsecases, authMiddleware AuthMid
 	}
 }
 
-type registeringUser struct {
-	Email      string `json:"email"`
-	Password   string `json:"password"`
-	FirstName  string `json:"first_name"`
-	LastName   string `json:"last_name"`
-	Patronymic string `json:"patronymic"`
+type registeringAccount struct {
+	Email    string `json:"email"`
+	Login    string `json:"login"`
+	Password string `json:"password"`
 }
 
-// CreateUser ...
 func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	user := &registeringUser{}
+	registerAccount := &registeringAccount{}
 
-	if err := json.NewDecoder(r.Body).Decode(user); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(registerAccount); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	res, err := as.AuthUsecases.SignUp(ctx, user.Email, user.Password, user.FirstName, user.LastName, user.Patronymic)
+	account, err := as.AuthUsecases.SignUp(ctx, registerAccount.Email, registerAccount.Login, registerAccount.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	payload, err := json.Marshal(res)
+	payload, err := json.Marshal(account)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -58,8 +53,8 @@ func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type signInUser struct {
-	Email    string `json:"email"`
+type signInAccount struct {
+	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
@@ -69,13 +64,13 @@ type signInResponse struct {
 
 func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	signInUser := &signInUser{}
+	signInAccount := &signInAccount{}
 
-	if err := json.NewDecoder(r.Body).Decode(signInUser); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(signInAccount); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	token, err := as.AuthUsecases.SignIn(ctx, signInUser.Email, signInUser.Password)
+	token, err := as.AuthUsecases.SignIn(ctx, signInAccount.Login, signInAccount.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

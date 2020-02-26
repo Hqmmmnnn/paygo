@@ -6,6 +6,7 @@ import (
 	"github.com/Hqqm/paygo/internal/auth/entities"
 	"github.com/Hqqm/paygo/internal/auth/interfaces"
 	"github.com/jmoiron/sqlx"
+	uuid "github.com/satori/go.uuid"
 )
 
 type pgUserRepository struct {
@@ -16,28 +17,23 @@ func NewPgUserRepository(db *sqlx.DB) interfaces.UserRepository {
 	return &pgUserRepository{db: db}
 }
 
-func (pg *pgUserRepository) SaveUser(ctx context.Context, user *entities.User) error {
+func (pg *pgUserRepository) CreateUserID(ctx context.Context, userID uuid.UUID) error {
 	query := `	
-		INSERT INTO users(id, email, password, first_name, last_name, patronymic)
-		VALUES (:id, :email, :password, :first_name, :last_name, :patronymic)
+		INSERT INTO users(id)
+		VALUES (:id)
 	`
 
 	_, err := pg.db.NamedExecContext(ctx, query, map[string]interface{}{
-		"id":         user.ID.String(),
-		"email":      user.Email,
-		"password":   user.Password,
-		"first_name": user.FirstName,
-		"last_name":  user.LastName,
-		"patronymic": user.Patronymic,
+		"id": userID.String(),
 	})
 
 	return err
 }
 
-func (pg *pgUserRepository) GetUser(ctx context.Context, email string) (*entities.User, error) {
+func (pg *pgUserRepository) GetUser(ctx context.Context, userID uuid.UUID) (*entities.User, error) {
 	user := &entities.User{}
 
-	err := pg.db.Get(user, "SELECT * FROM users WHERE email=$1", email)
+	err := pg.db.Get(user, "SELECT * FROM users WHERE id=$1", userID)
 	if err != nil {
 		return nil, err
 	}

@@ -18,13 +18,11 @@ import (
 	"github.com/spf13/viper"
 )
 
-// App ...
 type App struct {
 	httpServer  *http.Server
 	authService *_authHttpAdapter.AuthService
 }
 
-// NewApp ...
 func NewApp(dsn string) *App {
 	pg, err := maindb.NewPgStorage(dsn)
 	if err != nil {
@@ -32,19 +30,18 @@ func NewApp(dsn string) *App {
 	}
 
 	signingKey := []byte(viper.GetString("auth.signing_key"))
-	tokenTtl := viper.GetDuration("auth.token_ttl")
+	tokenTTL := viper.GetDuration("auth.token_ttl")
 
-	userRep := repository.NewPgUserRepository(pg.GetDB())
-	authUC := usescases.NewAuthUsecases(userRep, signingKey, tokenTtl)
+	userRepository := repository.NewPgUserRepository(pg.GetDB())
+	accountRepository := repository.NewAccountRepository(pg.GetDB())
+	authUC := usescases.NewAuthUsecases(accountRepository, userRepository, signingKey, tokenTTL)
 	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
+
 	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
 
-	return &App{
-		authService: authService,
-	}
+	return &App{authService: authService}
 }
 
-// Run ...
 func (app *App) Run(port string) error {
 	r := mux.NewRouter()
 
@@ -80,11 +77,7 @@ func (app *App) Run(port string) error {
 }
 
 func hi(w http.ResponseWriter, r *http.Request) {
-	if user := r.Context().Value("user"); user != nil {
-		w.Write([]byte(fmt.Sprintf("hiii %+v", user)))
-	} else {
-		if _, err := w.Write([]byte(fmt.Sprintf("Hiii"))); err != nil {
-			http.Error(w, err.Error(), http.StatusBadGateway)
-		}
+	if account := r.Context().Value("account"); account != nil {
+		w.Write([]byte(fmt.Sprintf("hiii %+v", account)))
 	}
 }

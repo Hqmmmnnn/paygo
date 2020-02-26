@@ -4,13 +4,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// PgUserStorage ...
-type pgStorage struct {
+type PgStorage struct {
 	db *sqlx.DB
 }
 
-// NewPgUserStorage ...
-func NewPgStorage(dsn string) (*pgStorage, error) {
+func NewPgStorage(dsn string) (*PgStorage, error) {
 	db, err := sqlx.Open("postgres", dsn)
 	if err != nil {
 		return nil, err
@@ -21,9 +19,10 @@ func NewPgStorage(dsn string) (*pgStorage, error) {
 		return nil, err
 	}
 
-	return &pgStorage{db: db}, nil
+	return &PgStorage{db: db}, nil
 }
 
-func (pg *pgStorage) GetDB() *sqlx.DB {
+// GetDB ...
+func (pg *PgStorage) GetDB() *sqlx.DB {
 	return pg.db
 }

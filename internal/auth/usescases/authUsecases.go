@@ -14,77 +14,83 @@ import (
 )
 
 type AuthClaims struct {
-	User *entities.User `json:"auth"`
+	Account *entities.Account `json:"auth"`
 	jwt.StandardClaims
 }
 
 type AuthUsecases struct {
-	UserRepository interfaces.UserRepository
-	signingKey     []byte
-	expiresAt      time.Duration
+	AccountRepository interfaces.AccountRepository
+	UserRepository    interfaces.UserRepository
+	signingKey        []byte
+	expiresAt         time.Duration
 }
 
-func NewAuthUsecases(ur interfaces.UserRepository, sk []byte, tokenTTLSeconds time.Duration) interfaces.AuthUsecases {
+func NewAuthUsecases(accRep interfaces.AccountRepository, userRep interfaces.UserRepository, sk []byte, tokenTTLSeconds time.Duration) interfaces.AuthUsecases {
 	return &AuthUsecases{
-		UserRepository: ur,
-		signingKey:     sk,
-		expiresAt:      time.Second * tokenTTLSeconds,
+		AccountRepository: accRep,
+		UserRepository:    userRep,
+		signingKey:        sk,
+		expiresAt:         time.Second * tokenTTLSeconds,
 	}
 }
 
-func (ac *AuthUsecases) SignUp(ctx context.Context, email string, password string, firstName string, lastName string, patronymic string) (*entities.User, error) {
+func (authUC *AuthUsecases) SignUp(ctx context.Context, email string, login string, password string) (*entities.Account, error) {
 	pwd, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
-
 	hashingPass := string(pwd)
 
-	user := &entities.User{
-		ID:         uuid.NewV4(),
-		Email:      email,
-		Password:   hashingPass,
-		FirstName:  firstName,
-		LastName:   lastName,
-		Patronymic: patronymic,
+	userID := uuid.NewV4()
+	err = authUC.UserRepository.CreateUserID(ctx, userID)
+	if err != nil {
+		return nil, err
 	}
 
-	saveErr := ac.UserRepository.SaveUser(ctx, user)
-	if saveErr != nil {
-		return nil, saveErr
+	account := &entities.Account{
+		ID:       uuid.NewV4(),
+		UserID:   userID,
+		Email:    email,
+		Login:    login,
+		Password: hashingPass,
 	}
 
-	return user, nil
+	err = authUC.AccountRepository.SaveAccount(ctx, account)
+	if err != nil {
+		return nil, err
+	}
+
+	return account, nil
 }
 
-func (ac *AuthUsecases) SignIn(ctx context.Context, email, password string) (string, error) {
-	user, err := ac.UserRepository.GetUser(ctx, email)
+func (authUC *AuthUsecases) SignIn(ctx context.Context, login, password string) (string, error) {
+	account, err := authUC.AccountRepository.GetAccount(ctx, login)
 	if err != nil {
 		return "", err
 	}
 
-	errWrongCred := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	errWrongCred := bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
 	if errWrongCred != nil && errWrongCred == bcrypt.ErrMismatchedHashAndPassword {
 		return "", errWrongCred
 	}
 
 	claims := AuthClaims{
-		User: user,
+		Account: account,
 		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: time.Now().Add(ac.expiresAt).Unix(),
+			ExpiresAt: time.Now().Add(authUC.expiresAt).Unix(),
 		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString(ac.signingKey)
+	return token.SignedString(authUC.signingKey)
 }
 
-func (ac *AuthUsecases) ParseToken(ctx context.Context, accessToken string) (*entities.User, error) {
+func (authUC *AuthUsecases) ParseToken(ctx context.Context, accessToken string) (*entities.Account, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
 		}
-		return ac.signingKey, nil
+		return authUC.signingKey, nil
 	})
 
 	if err != nil {
@@ -92,7 +98,7 @@ func (ac *AuthUsecases) ParseToken(ctx context.Context, accessToken string) (*en
 	}
 
 	if claims, ok := token.Claims.(*AuthClaims); ok && token.Valid {
-		return claims.User, nil
+		return claims.Account, nil
 	}
 
 	return nil, errors.New("invalid access token")
