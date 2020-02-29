@@ -37,5 +37,5 @@ func TestGetAccount(t *testing.T) {
 
 	account, err = accStorage.GetAccount(context.Background(), "blablabla")
 	assert.Error(t, err)
-	assert.Equal(t, err, auth.ErrUserNotFound)
+	assert.Equal(t, err, auth.ErrAccountNotFound)
 }

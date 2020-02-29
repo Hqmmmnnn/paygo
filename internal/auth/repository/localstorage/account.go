@@ -38,5 +38,5 @@ func (accStorage *AccountLocalStorage) GetAccount(ctx context.Context, email str
 		}
 	}
 
-	return nil, auth.ErrUserNotFound
+	return nil, auth.ErrAccountNotFound
 }
