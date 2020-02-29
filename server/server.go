@@ -32,8 +32,8 @@ func NewApp(dsn string) *App {
 	signingKey := []byte(viper.GetString("auth.signing_key"))
 	tokenTTL := viper.GetDuration("auth.token_ttl")
 
-	userRepository := repository.NewPgUserRepository(pg.GetDB())
 	accountRepository := repository.NewAccountRepository(pg.GetDB())
+	userRepository := repository.NewPgUserRepository(pg.GetDB())
 	authUC := usescases.NewAuthUsecases(accountRepository, userRepository, signingKey, tokenTTL)
 	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
 
@@ -50,11 +50,15 @@ func (app *App) Run(port string) error {
 	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
 
 	api := r.PathPrefix("/api").Subrouter()
+	api.Use(AccesLoginMiddleware)
 	api.Use(app.authService.Middleware.VerifyToken)
 	api.HandleFunc("/hi", hi)
 
+	siteHandler := AccesLoginMiddleware(api)
+	siteHandler = app.authService.Middleware.VerifyToken(siteHandler)
+
 	app.httpServer = &http.Server{
-		Handler:      r,
+		Handler:      siteHandler,
 		Addr:         fmt.Sprintf(":%s", port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,

@@ -2,8 +2,10 @@ package http
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/Hqqm/paygo/internal/auth/interfaces"
 )
@@ -18,14 +20,17 @@ func NewAuthMiddleware(usecases interfaces.AuthUsecases) *AuthMiddleware {
 
 func (am *AuthMiddleware) VerifyToken(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		header := r.Header.Get("x-access-token")
+		fmt.Println("Verify token middleware", r.URL.Path)
+		header := r.Header.Get("X-Access-Token")
 		header = strings.TrimSpace(header)
 		if header == "" {
 			w.WriteHeader(http.StatusForbidden)
 			return
 		}
 
-		ctx := r.Context()
+		ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+		defer cancel()
+
 		account, err := am.usecases.ParseToken(ctx, header)
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)

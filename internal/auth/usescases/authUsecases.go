@@ -88,7 +88,7 @@ func (authUC *AuthUsecases) SignIn(ctx context.Context, login, password string) 
 func (authUC *AuthUsecases) ParseToken(ctx context.Context, accessToken string) (*entities.Account, error) {
 	token, err := jwt.ParseWithClaims(accessToken, &AuthClaims{}, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["error"])
 		}
 		return authUC.signingKey, nil
 	})

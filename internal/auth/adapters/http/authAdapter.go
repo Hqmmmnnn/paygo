@@ -3,6 +3,9 @@ package http
 import (
 	"encoding/json"
 	"net/http"
+	"time"
+
+	"context"
 
 	"github.com/Hqqm/paygo/internal/auth/interfaces"
 )
@@ -26,9 +29,10 @@ type registeringAccount struct {
 }
 
 func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	registerAccount := &registeringAccount{}
+	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	defer cancel()
 
+	registerAccount := &registeringAccount{}
 	if err := json.NewDecoder(r.Body).Decode(registerAccount); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
@@ -63,9 +67,10 @@ type signInResponse struct {
 }
 
 func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
-	ctx := r.Context()
-	signInAccount := &signInAccount{}
+	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	defer cancel()
 
+	signInAccount := &signInAccount{}
 	if err := json.NewDecoder(r.Body).Decode(signInAccount); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
