@@ -7,7 +7,7 @@ import (
 )
 
 type AuthUsecases interface {
-	SignUp(ctx context.Context, email string, login string, password string) (*entities.Account, error)
-	SignIn(ctx context.Context, login string, password string) (string, error)
+	SignUp(ctx context.Context, accountID, email, login, password string) (*entities.Account, error)
+	SignIn(ctx context.Context, login, password string) (string, error)
 	ParseToken(ctx context.Context, accessToken string) (*entities.Account, error)
 }

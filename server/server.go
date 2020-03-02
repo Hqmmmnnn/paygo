@@ -13,7 +13,7 @@ import (
 	_authHttpAdapter "github.com/Hqqm/paygo/internal/auth/adapters/http"
 	"github.com/Hqqm/paygo/internal/auth/repository"
 	"github.com/Hqqm/paygo/internal/auth/usescases"
-	"github.com/Hqqm/paygo/internal/maindb"
+	"github.com/Hqqm/paygo/server/maindb"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 )
@@ -50,12 +50,10 @@ func (app *App) Run(port string) error {
 	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
 
 	api := r.PathPrefix("/api").Subrouter()
-	api.Use(AccesLoginMiddleware)
 	api.Use(app.authService.Middleware.VerifyToken)
 	api.HandleFunc("/hi", hi)
 
-	siteHandler := AccesLoginMiddleware(api)
-	siteHandler = app.authService.Middleware.VerifyToken(siteHandler)
+	siteHandler := AccessLoginMiddleware(r)
 
 	app.httpServer = &http.Server{
 		Handler:      siteHandler,

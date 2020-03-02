@@ -1,11 +1,10 @@
 package http
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"time"
-
-	"context"
 
 	"github.com/Hqqm/paygo/internal/auth/interfaces"
 )
@@ -22,23 +21,24 @@ func NewAuthService(authUsecases interfaces.AuthUsecases, authMiddleware AuthMid
 	}
 }
 
-type registeringAccount struct {
+type SignUpInput struct {
+	ID       string `json:"id"`
 	Email    string `json:"email"`
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
 
 func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 500*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	registerAccount := &registeringAccount{}
-	if err := json.NewDecoder(r.Body).Decode(registerAccount); err != nil {
+	signUpInput := &SignUpInput{}
+	if err := json.NewDecoder(r.Body).Decode(signUpInput); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	account, err := as.AuthUsecases.SignUp(ctx, registerAccount.Email, registerAccount.Login, registerAccount.Password)
+	account, err := as.AuthUsecases.SignUp(ctx, signUpInput.ID, signUpInput.Email, signUpInput.Login, signUpInput.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -57,7 +57,7 @@ func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type signInAccount struct {
+type signInInput struct {
 	Login    string `json:"login"`
 	Password string `json:"password"`
 }
@@ -67,15 +67,15 @@ type signInResponse struct {
 }
 
 func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 100*time.Millisecond)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
-	signInAccount := &signInAccount{}
-	if err := json.NewDecoder(r.Body).Decode(signInAccount); err != nil {
+	signInInput := &signInInput{}
+	if err := json.NewDecoder(r.Body).Decode(signInInput); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 	}
 
-	token, err := as.AuthUsecases.SignIn(ctx, signInAccount.Login, signInAccount.Password)
+	token, err := as.AuthUsecases.SignIn(ctx, signInInput.Login, signInInput.Password)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
