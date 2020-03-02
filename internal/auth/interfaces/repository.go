@@ -4,12 +4,11 @@ import (
 	"context"
 
 	"github.com/Hqqm/paygo/internal/auth/entities"
-	uuid "github.com/satori/go.uuid"
 )
 
 type UserRepository interface {
-	CreateUserID(ctx context.Context, userID uuid.UUID) error
-	GetUser(ctx context.Context, userID uuid.UUID) (*entities.User, error)
+	CreateEmptyUserWithID(ctx context.Context, userID string) error
+	GetUser(ctx context.Context, userID string) (*entities.User, error)
 }
 
 type AccountRepository interface {

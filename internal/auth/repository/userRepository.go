@@ -17,23 +17,31 @@ func NewPgUserRepository(db *sqlx.DB) interfaces.UserRepository {
 	return &pgUserRepository{db: db}
 }
 
-func (pg *pgUserRepository) CreateUserID(ctx context.Context, userID uuid.UUID) error {
-	query := `	
+func (pg *pgUserRepository) CreateEmptyUserWithID(ctx context.Context, userID string) error {
+	query := `
 		INSERT INTO users(id)
 		VALUES (:id)
 	`
+	userUUID, err := uuid.FromString(userID)
+	if err != nil {
+		return err
+	}
 
-	_, err := pg.db.NamedExecContext(ctx, query, map[string]interface{}{
-		"id": userID.String(),
+	_, err = pg.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"id": userUUID,
 	})
 
 	return err
 }
 
-func (pg *pgUserRepository) GetUser(ctx context.Context, userID uuid.UUID) (*entities.User, error) {
+func (pg *pgUserRepository) GetUser(ctx context.Context, userID string) (*entities.User, error) {
 	user := &entities.User{}
+	userUUID, err := uuid.FromString(userID)
+	if err != nil {
+		return nil, err
+	}
 
-	err := pg.db.Get(user, "SELECT * FROM users WHERE id=$1", userID)
+	err = pg.db.Get(user, "SELECT * FROM users WHERE id=$1", userUUID)
 	if err != nil {
 		return nil, err
 	}
