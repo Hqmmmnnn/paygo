@@ -2,10 +2,11 @@ package repository
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/auth/entities"
-	"github.com/Hqqm/paygo/internal/auth/interfaces"
+	"github.com/Hqqm/paygo/internal/entities"
+	"github.com/Hqqm/paygo/internal/interfaces"
 	"github.com/jmoiron/sqlx"
 	uuid "github.com/satori/go.uuid"
 )
@@ -15,13 +16,13 @@ type accountRepository struct {
 }
 
 type PostgresAccount struct {
-	ID        uuid.UUID `db:"id"`
-	UserID    uuid.UUID `db:"user_id"`
-	Email     string    `db:"email"`
-	Login     string    `db:"login"`
-	Password  string    `db:"password"`
-	Balance   float64   `db:"balance"`
-	CreatedAt time.Time `db:"created_at"`
+	ID        uuid.UUID      `db:"id"`
+	UserID    sql.NullString `db:"user_id"`
+	Email     string         `db:"email"`
+	Login     string         `db:"login"`
+	Password  string         `db:"password"`
+	Balance   float64        `db:"balance"`
+	CreatedAt time.Time      `db:"created_at"`
 }
 
 func NewAccountRepository(db *sqlx.DB) interfaces.AccountRepository {
@@ -56,22 +57,18 @@ func (accountRepository *accountRepository) GetAccount(ctx context.Context, logi
 		return nil, err
 	}
 
-	account, err := accountRepository.convertFromPostgresAccount(postgresAcc)
-	if err != nil {
-		return nil, err
-	}
-
+	account := accountRepository.convertFromPostgresAccount(postgresAcc)
 	return account, nil
 }
 
-func (accountRepository *accountRepository) convertFromPostgresAccount(account *PostgresAccount) (*entities.Account, error) {
+func (accountRepository *accountRepository) convertFromPostgresAccount(account *PostgresAccount) *entities.Account {
 	return &entities.Account{
 		ID:        account.ID.String(),
-		UserID:    account.ID.String(),
+		UserID:    account.UserID.String,
 		Email:     account.Email,
 		Login:     account.Login,
 		Password:  account.Password,
 		Balance:   account.Balance,
 		CreatedAt: account.CreatedAt,
-	}, nil
+	}
 }

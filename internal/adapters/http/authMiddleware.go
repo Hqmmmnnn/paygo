@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/auth/interfaces"
+	"github.com/Hqqm/paygo/internal/interfaces"
 )
 
 type AuthMiddleware struct {

@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/auth"
-	"github.com/Hqqm/paygo/internal/auth/entities"
-	"github.com/Hqqm/paygo/internal/auth/interfaces"
+	"github.com/Hqqm/paygo/internal/entities"
+	"github.com/Hqqm/paygo/internal/interfaces"
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 )
 
 type AuthClaims struct {
-	Account *entities.Account `json:"auth"`
+	Account *entities.Account
 	jwt.StandardClaims
 }
 
@@ -59,7 +58,7 @@ func (authUC *AuthUsecases) SignUp(ctx context.Context, accountID, email, login,
 func (authUC *AuthUsecases) SignIn(ctx context.Context, login, password string) (string, error) {
 	account, err := authUC.AccountRepository.GetAccount(ctx, login)
 	if err != nil {
-		return "", auth.ErrAccountNotFound
+		return "", err
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
