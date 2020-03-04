@@ -3,15 +3,15 @@ package interfaces
 import (
 	"context"
 
-	"github.com/Hqqm/paygo/internal/auth/entities"
+	"github.com/Hqqm/paygo/internal/entities"
 )
 
 type UserRepository interface {
-	CreateEmptyUserWithID(ctx context.Context, userID string) error
+	CreateUser(ctx context.Context, user *entities.User) error
 	GetUser(ctx context.Context, userID string) (*entities.User, error)
 }
 
 type AccountRepository interface {
 	SaveAccount(ctx context.Context, account *entities.Account) error
-	GetAccount(ctx context.Context, email string) (*entities.Account, error)
+	GetAccount(ctx context.Context, login string) (*entities.Account, error)
 }

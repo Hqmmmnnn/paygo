@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/auth/interfaces"
+	"github.com/Hqqm/paygo/internal/interfaces"
 )
 
 type AuthService struct {
@@ -73,16 +73,19 @@ func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	signInInput := &signInInput{}
 	if err := json.NewDecoder(r.Body).Decode(signInInput); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	token, err := as.AuthUsecases.SignIn(ctx, signInInput.Login, signInInput.Password)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	payload, err := json.Marshal(&signInResponse{Token: token})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")

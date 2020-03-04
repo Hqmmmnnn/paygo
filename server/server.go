@@ -10,9 +10,9 @@ import (
 	"syscall"
 	"time"
 
-	_authHttpAdapter "github.com/Hqqm/paygo/internal/auth/adapters/http"
-	"github.com/Hqqm/paygo/internal/auth/repository"
-	"github.com/Hqqm/paygo/internal/auth/usescases"
+	_authHttpAdapter "github.com/Hqqm/paygo/internal/adapters/http"
+	"github.com/Hqqm/paygo/internal/repository"
+	"github.com/Hqqm/paygo/internal/usescases"
 	"github.com/Hqqm/paygo/server/maindb"
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
@@ -33,7 +33,7 @@ func NewApp(dsn string) *App {
 	tokenTTL := viper.GetDuration("auth.token_ttl")
 
 	accountRepository := repository.NewAccountRepository(pg.GetDB())
-	userRepository := repository.NewPgUserRepository(pg.GetDB())
+	userRepository := repository.NewUserRepository(pg.GetDB())
 	authUC := usescases.NewAuthUsecases(accountRepository, userRepository, signingKey, tokenTTL)
 	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
 
@@ -53,7 +53,7 @@ func (app *App) Run(port string) error {
 	api.Use(app.authService.Middleware.VerifyToken)
 	api.HandleFunc("/hi", hi)
 
-	siteHandler := AccessLoginMiddleware(r)
+	siteHandler := LoggerMiddleware(r)
 
 	app.httpServer = &http.Server{
 		Handler:      siteHandler,
