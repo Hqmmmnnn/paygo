@@ -13,5 +13,6 @@ type UserRepository interface {
 
 type AccountRepository interface {
 	SaveAccount(ctx context.Context, account *entities.Account) error
+	SetUserID(ctx context.Context, accountID, userID string) error
 	GetAccount(ctx context.Context, login string) (*entities.Account, error)
 }

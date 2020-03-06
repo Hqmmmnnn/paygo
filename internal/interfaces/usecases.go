@@ -11,3 +11,8 @@ type AuthUsecases interface {
 	SignIn(ctx context.Context, login, password string) (string, error)
 	ParseToken(ctx context.Context, accessToken string) (*entities.Account, error)
 }
+
+type UserUsecases interface {
+	AddUserInfoToAccount(ctx context.Context, accountID string, user *entities.User) error
+	GetUserById(ctx context.Context, userID string) (*entities.User, error)
+}

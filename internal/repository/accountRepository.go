@@ -50,6 +50,21 @@ func (accountRepository *accountRepository) SaveAccount(ctx context.Context, acc
 	return err
 }
 
+func (accountRepository *accountRepository) SetUserID(ctx context.Context, accountID, userID string) error {
+	query := `	
+		UPDATE accounts
+		SET user_id=:user_id
+		WHERE id=:account_id
+	`
+
+	_, err := accountRepository.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"account_id": accountID,
+		"user_id":    userID,
+	})
+
+	return err
+}
+
 func (accountRepository *accountRepository) GetAccount(ctx context.Context, login string) (*entities.Account, error) {
 	postgresAcc := &PostgresAccount{}
 	err := accountRepository.db.Get(postgresAcc, "SELECT * FROM accounts WHERE login=$1", login)

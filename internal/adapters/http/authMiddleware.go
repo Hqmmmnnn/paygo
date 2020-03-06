@@ -11,11 +11,11 @@ import (
 )
 
 type AuthMiddleware struct {
-	usecases interfaces.AuthUsecases
+	authUsecases interfaces.AuthUsecases
 }
 
-func NewAuthMiddleware(usecases interfaces.AuthUsecases) *AuthMiddleware {
-	return &AuthMiddleware{usecases: usecases}
+func NewAuthMiddleware(authUsecases interfaces.AuthUsecases) *AuthMiddleware {
+	return &AuthMiddleware{authUsecases: authUsecases}
 }
 
 func (am *AuthMiddleware) VerifyToken(next http.Handler) http.Handler {
@@ -31,7 +31,7 @@ func (am *AuthMiddleware) VerifyToken(next http.Handler) http.Handler {
 		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Millisecond)
 		defer cancel()
 
-		account, err := am.usecases.ParseToken(ctx, header)
+		account, err := am.authUsecases.ParseToken(ctx, header)
 		if err != nil {
 			w.WriteHeader(http.StatusForbidden)
 		}
