@@ -19,15 +19,13 @@ type AuthClaims struct {
 
 type AuthUsecases struct {
 	AccountRepository interfaces.AccountRepository
-	UserRepository    interfaces.UserRepository
 	signingKey        []byte
 	expiresAt         time.Duration
 }
 
-func NewAuthUsecases(accRep interfaces.AccountRepository, userRep interfaces.UserRepository, sk []byte, tokenTTLSeconds time.Duration) interfaces.AuthUsecases {
+func NewAuthUsecases(accRep interfaces.AccountRepository, sk []byte, tokenTTLSeconds time.Duration) interfaces.AuthUsecases {
 	return &AuthUsecases{
 		AccountRepository: accRep,
-		UserRepository:    userRep,
 		signingKey:        sk,
 		expiresAt:         time.Second * tokenTTLSeconds,
 	}

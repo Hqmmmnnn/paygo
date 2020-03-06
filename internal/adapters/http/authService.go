@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Hqqm/paygo/internal/_lib"
 	"github.com/Hqqm/paygo/internal/interfaces"
 )
 
@@ -44,17 +45,7 @@ func (as *AuthService) SignUp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload, err := json.Marshal(account)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(payload); err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
-		return
-	}
+	_lib.MarshalJsonAndWrite(account, w)
 }
 
 type signInInput struct {
@@ -82,14 +73,5 @@ func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	payload, err := json.Marshal(&signInResponse{Token: token})
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	if _, err := w.Write(payload); err != nil {
-		http.Error(w, err.Error(), http.StatusBadGateway)
-	}
+	_lib.MarshalJsonAndWrite(&signInResponse{Token: token}, w)
 }

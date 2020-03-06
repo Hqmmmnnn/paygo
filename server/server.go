@@ -10,7 +10,9 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/Hqqm/paygo/internal/_lib"
 	_authHttpAdapter "github.com/Hqqm/paygo/internal/adapters/http"
+	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/Hqqm/paygo/internal/repository"
 	"github.com/Hqqm/paygo/internal/usescases"
 	"github.com/Hqqm/paygo/server/maindb"
@@ -21,6 +23,7 @@ import (
 type App struct {
 	httpServer  *http.Server
 	authService *_authHttpAdapter.AuthService
+	userService *_authHttpAdapter.UserService
 }
 
 func NewApp(dsn string) *App {
@@ -33,13 +36,18 @@ func NewApp(dsn string) *App {
 	tokenTTL := viper.GetDuration("auth.token_ttl")
 
 	accountRepository := repository.NewAccountRepository(pg.GetDB())
-	userRepository := repository.NewUserRepository(pg.GetDB())
-	authUC := usescases.NewAuthUsecases(accountRepository, userRepository, signingKey, tokenTTL)
+	authUC := usescases.NewAuthUsecases(accountRepository, signingKey, tokenTTL)
 	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
-
 	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
 
-	return &App{authService: authService}
+	userRepository := repository.NewUserRepository(pg.GetDB())
+	userUC := usescases.NewUserUsecase(userRepository, accountRepository)
+	userService := _authHttpAdapter.NewAccountService(userUC)
+
+	return &App{
+		authService: authService,
+		userService: userService,
+	}
 }
 
 func (app *App) Run(port string) error {
@@ -50,13 +58,14 @@ func (app *App) Run(port string) error {
 	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
 
 	api := r.PathPrefix("/api").Subrouter()
-	api.Use(app.authService.Middleware.VerifyToken)
 	api.HandleFunc("/hi", hi)
-
-	siteHandler := LoggerMiddleware(r)
+	api.HandleFunc("/addUserInfo", app.userService.AddUserInfoToAccount).Methods("POST")
+	api.HandleFunc("/getUserInfo", app.userService.GetUserById).Methods("GET")
+	api.Use(LoggerMiddleware)
+	api.Use(app.authService.Middleware.VerifyToken)
 
 	app.httpServer = &http.Server{
-		Handler:      siteHandler,
+		Handler:      r,
 		Addr:         fmt.Sprintf(":%s", port),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
@@ -79,7 +88,7 @@ func (app *App) Run(port string) error {
 }
 
 func hi(w http.ResponseWriter, r *http.Request) {
-	if account := r.Context().Value("account"); account != nil {
-		w.Write([]byte(fmt.Sprintf("hiii %+v", account)))
+	if account := r.Context().Value("account").(*entities.Account); account != nil {
+		_lib.MarshalJsonAndWrite(account, w)
 	}
 }
