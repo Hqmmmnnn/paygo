@@ -17,34 +17,37 @@ func NewUserRepository(db *sqlx.DB) interfaces.UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (pg *UserRepository) CreateUser(ctx context.Context, user *entities.User) error {
-	query := `
-		INSERT INTO users(id, first_name, last_name, patronymic)
-		VALUES (:id, :first_name, :last_name, :patronymic)
-	`
+func (userRep *UserRepository) AddUserInfoToAccount(ctx context.Context, user *entities.User, accountId string) error {
 	userUUID, err := uuid.FromString(user.ID)
 	if err != nil {
 		return err
 	}
 
-	_, err = pg.db.NamedExecContext(ctx, query, map[string]interface{}{
-		"id":         userUUID,
-		"first_name": user.FirstName,
-		"last_name":  user.LastName,
-		"patronymic": user.Patronymic,
-	})
+	accUUID, err := uuid.FromString(accountId)
+	if err != nil {
+		return err
+	}
+
+	_, err = userRep.db.NamedExecContext(ctx, `CALL add_user_info_in_account(:accID, :userID, :fName, :lName, :patronymic)`,
+		map[string]interface{}{
+			"accID":      accUUID,
+			"userID":     userUUID,
+			"fName":      user.FirstName,
+			"lName":      user.LastName,
+			"patronymic": user.Patronymic,
+		})
 
 	return err
 }
 
-func (pg *UserRepository) GetUser(ctx context.Context, userID string) (*entities.User, error) {
+func (userRep *UserRepository) GetUser(ctx context.Context, userID string) (*entities.User, error) {
 	user := &entities.User{}
 	userUUID, err := uuid.FromString(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	err = pg.db.Get(user, "SELECT * FROM users WHERE id=$1", userUUID)
+	err = userRep.db.Get(user, "SELECT * FROM users WHERE id=$1", userUUID)
 	if err != nil {
 		return nil, err
 	}

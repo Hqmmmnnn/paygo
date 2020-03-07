@@ -32,7 +32,7 @@ func (accSettingsService *AccountsSettingsService) AddUserInfoToAccount(w http.R
 		return
 	}
 
-	err := accSettingsService.ProfileUseCases.AddUserInfoToAccount(ctx, account.ID, userInfo)
+	err := accSettingsService.ProfileUseCases.AddUserInfoToAccount(ctx, userInfo, account.ID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
