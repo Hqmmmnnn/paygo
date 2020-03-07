@@ -30,36 +30,21 @@ func NewAccountRepository(db *sqlx.DB) interfaces.AccountRepository {
 }
 
 func (accountRepository *accountRepository) SaveAccount(ctx context.Context, account *entities.Account) error {
-	query := `	
-		INSERT INTO accounts(id, email, login, password)
-		VALUES (:id, :email, :login, :password)
-	`
-
 	accUUID, err := uuid.FromString(account.ID)
 	if err != nil {
 		return err
 	}
+
+	query := `	
+		INSERT INTO accounts(id, email, login, password)
+		VALUES (:id, :email, :login, :password)
+	`
 
 	_, err = accountRepository.db.NamedExecContext(ctx, query, map[string]interface{}{
 		"id":       accUUID,
 		"email":    account.Email,
 		"login":    account.Login,
 		"password": account.Password,
-	})
-
-	return err
-}
-
-func (accountRepository *accountRepository) SetUserID(ctx context.Context, accountID, userID string) error {
-	query := `	
-		UPDATE accounts
-		SET user_id=:user_id
-		WHERE id=:account_id
-	`
-
-	_, err := accountRepository.db.NamedExecContext(ctx, query, map[string]interface{}{
-		"account_id": accountID,
-		"user_id":    userID,
 	})
 
 	return err

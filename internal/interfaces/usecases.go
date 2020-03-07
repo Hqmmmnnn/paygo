@@ -13,6 +13,6 @@ type AuthUsecases interface {
 }
 
 type AccountSettingsUsecases interface {
-	AddUserInfoToAccount(ctx context.Context, accountID string, user *entities.User) error
+	AddUserInfoToAccount(ctx context.Context, user *entities.User, accountID string) error
 	GetUserById(ctx context.Context, userID string) (*entities.User, error)
 }
