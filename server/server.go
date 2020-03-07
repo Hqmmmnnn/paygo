@@ -21,9 +21,9 @@ import (
 )
 
 type App struct {
-	httpServer  *http.Server
-	authService *_authHttpAdapter.AuthService
-	userService *_authHttpAdapter.UserService
+	httpServer         *http.Server
+	authService        *_authHttpAdapter.AuthService
+	accSettingsService *_authHttpAdapter.AccountsSettingsService
 }
 
 func NewApp(dsn string) *App {
@@ -41,17 +41,18 @@ func NewApp(dsn string) *App {
 	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
 
 	userRepository := repository.NewUserRepository(pg.GetDB())
-	userUC := usescases.NewUserUsecase(userRepository, accountRepository)
-	userService := _authHttpAdapter.NewAccountService(userUC)
+	accSettingsUC := usescases.NewAccountSettingsUsecases(userRepository, accountRepository)
+	accSettingsService := _authHttpAdapter.NewAccountsSettingsService(accSettingsUC)
 
 	return &App{
-		authService: authService,
-		userService: userService,
+		authService:        authService,
+		accSettingsService: accSettingsService,
 	}
 }
 
 func (app *App) Run(port string) error {
 	r := mux.NewRouter()
+	r.Use(LoggerMiddleware)
 
 	auth := r.PathPrefix("/auth").Subrouter()
 	auth.HandleFunc("/signUp", app.authService.SignUp).Methods("POST")
@@ -59,9 +60,8 @@ func (app *App) Run(port string) error {
 
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/hi", hi)
-	api.HandleFunc("/addUserInfo", app.userService.AddUserInfoToAccount).Methods("POST")
-	api.HandleFunc("/getUserInfo", app.userService.GetUserById).Methods("GET")
-	api.Use(LoggerMiddleware)
+	api.HandleFunc("/addUserInfo", app.accSettingsService.AddUserInfoToAccount).Methods("POST")
+	api.HandleFunc("/getUserInfo", app.accSettingsService.GetUserById).Methods("GET")
 	api.Use(app.authService.Middleware.VerifyToken)
 
 	app.httpServer = &http.Server{

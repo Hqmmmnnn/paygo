@@ -12,7 +12,7 @@ type AuthUsecases interface {
 	ParseToken(ctx context.Context, accessToken string) (*entities.Account, error)
 }
 
-type UserUsecases interface {
+type AccountSettingsUsecases interface {
 	AddUserInfoToAccount(ctx context.Context, accountID string, user *entities.User) error
 	GetUserById(ctx context.Context, userID string) (*entities.User, error)
 }
