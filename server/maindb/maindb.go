@@ -23,6 +23,6 @@ func NewPgStorage(dsn string) (*PgStorage, error) {
 }
 
 // GetDB ...
-func (pg *PgStorage) GetDB() *sqlx.DB {
+func (pg *PgStorage) GetDBConnection() *sqlx.DB {
 	return pg.db
 }

@@ -13,67 +13,33 @@ import (
 	"github.com/Hqqm/paygo/internal/_lib"
 	_authHttpAdapter "github.com/Hqqm/paygo/internal/adapters/http"
 	"github.com/Hqqm/paygo/internal/entities"
-	"github.com/Hqqm/paygo/internal/repository"
-	"github.com/Hqqm/paygo/internal/usescases"
-	"github.com/Hqqm/paygo/server/maindb"
 	"github.com/gorilla/mux"
-	"github.com/spf13/viper"
 )
 
-type App struct {
+type Server struct {
 	httpServer         *http.Server
 	authService        *_authHttpAdapter.AuthService
-	accSettingsService *_authHttpAdapter.AccountsSettingsService
+	accSettingsService *_authHttpAdapter.AccountSettingsService
 }
 
-func NewApp(dsn string) *App {
-	pg, err := maindb.NewPgStorage(dsn)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	signingKey := []byte(viper.GetString("auth.signing_key"))
-	tokenTTL := viper.GetDuration("auth.token_ttl")
-
-	accountRepository := repository.NewAccountRepository(pg.GetDB())
-	authUC := usescases.NewAuthUsecases(accountRepository, signingKey, tokenTTL)
-	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
-	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
-
-	userRepository := repository.NewUserRepository(pg.GetDB())
-	accSettingsUC := usescases.NewAccountSettingsUsecases(userRepository, accountRepository)
-	accSettingsService := _authHttpAdapter.NewAccountsSettingsService(accSettingsUC)
-
-	return &App{
+func NewServer(authService *_authHttpAdapter.AuthService, accSettingsService *_authHttpAdapter.AccountSettingsService) *Server {
+	return &Server{
 		authService:        authService,
 		accSettingsService: accSettingsService,
 	}
 }
 
-func (app *App) Run(port string) error {
-	r := mux.NewRouter()
-	r.Use(LoggerMiddleware)
-
-	auth := r.PathPrefix("/auth").Subrouter()
-	auth.HandleFunc("/signUp", app.authService.SignUp).Methods("POST")
-	auth.HandleFunc("/signIn", app.authService.SignIn).Methods("POST")
-
-	api := r.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/hi", hi)
-	api.HandleFunc("/addUserInfo", app.accSettingsService.AddUserInfoToAccount).Methods("POST")
-	api.HandleFunc("/getUserInfo", app.accSettingsService.GetUserById).Methods("GET")
-	api.Use(app.authService.Middleware.VerifyToken)
-
-	app.httpServer = &http.Server{
-		Handler:      r,
+func (server *Server) Run(port string) error {
+	server.httpServer = &http.Server{
 		Addr:         fmt.Sprintf(":%s", port),
+		Handler:      server.handler(),
 		ReadTimeout:  10 * time.Second,
 		WriteTimeout: 10 * time.Second,
 	}
 
 	go func() {
 		log.Printf("Starting Server on port %s", port)
-		if err := app.httpServer.ListenAndServe(); err != nil {
+		if err := server.httpServer.ListenAndServe(); err != nil {
 			log.Fatal(err)
 		}
 	}()
@@ -84,7 +50,24 @@ func (app *App) Run(port string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
 	defer cancel()
 
-	return app.httpServer.Shutdown(ctx)
+	return server.httpServer.Shutdown(ctx)
+}
+
+func (server *Server) handler() http.Handler {
+	r := mux.NewRouter()
+	r.Use(LoggerMiddleware)
+
+	auth := r.PathPrefix("/auth").Subrouter()
+	auth.HandleFunc("/signUp", server.authService.SignUp).Methods("POST")
+	auth.HandleFunc("/signIn", server.authService.SignIn).Methods("POST")
+
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/hi", hi)
+	api.HandleFunc("/addUserInfo", server.accSettingsService.AddUserInfoToAccount).Methods("POST")
+	api.HandleFunc("/getUserInfo", server.accSettingsService.GetUserById).Methods("GET")
+	api.Use(server.authService.Middleware.VerifyToken)
+
+	return r
 }
 
 func hi(w http.ResponseWriter, r *http.Request) {
