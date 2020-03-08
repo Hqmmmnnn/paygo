@@ -3,6 +3,7 @@ package http
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"time"
 
@@ -11,17 +12,17 @@ import (
 	"github.com/Hqqm/paygo/internal/interfaces"
 )
 
-type AccountsSettingsService struct {
+type AccountSettingsService struct {
 	ProfileUseCases interfaces.AccountSettingsUsecases
 }
 
-func NewAccountsSettingsService(userUC interfaces.AccountSettingsUsecases) *AccountsSettingsService {
-	return &AccountsSettingsService{
+func NewAccountSettingsService(userUC interfaces.AccountSettingsUsecases) *AccountSettingsService {
+	return &AccountSettingsService{
 		ProfileUseCases: userUC,
 	}
 }
 
-func (accSettingsService *AccountsSettingsService) AddUserInfoToAccount(w http.ResponseWriter, r *http.Request) {
+func (accSettingsService *AccountSettingsService) AddUserInfoToAccount(w http.ResponseWriter, r *http.Request) {
 	account := r.Context().Value("account").(*entities.Account)
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
@@ -39,21 +40,17 @@ func (accSettingsService *AccountsSettingsService) AddUserInfoToAccount(w http.R
 	}
 }
 
-type GetUserByIdInput struct {
-	ID string `json:"id"`
-}
-
-func (accSettingsService *AccountsSettingsService) GetUserById(w http.ResponseWriter, r *http.Request) {
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-
-	input := &GetUserByIdInput{}
-	if err := json.NewDecoder(r.Body).Decode(input); err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+func (accSettingsService *AccountSettingsService) GetUserById(w http.ResponseWriter, r *http.Request) {
+	account := r.Context().Value("account").(*entities.Account)
+	if account.UserID == "" {
+		http.Error(w, errors.New("user does not exist").Error(), http.StatusNoContent)
 		return
 	}
 
-	user, err := accSettingsService.ProfileUseCases.GetUserById(ctx, input.ID)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
+
+	user, err := accSettingsService.ProfileUseCases.GetUserById(ctx, account.UserID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

@@ -1,0 +1,1 @@
+DROP PROCEDURE IF EXISTS add_user_info_in_account();
