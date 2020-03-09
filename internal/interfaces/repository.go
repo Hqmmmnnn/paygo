@@ -14,4 +14,5 @@ type UserRepository interface {
 type AccountRepository interface {
 	SaveAccount(ctx context.Context, account *entities.Account) error
 	GetAccount(ctx context.Context, login string) (*entities.Account, error)
+	ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error
 }

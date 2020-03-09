@@ -48,3 +48,21 @@ func (accountRepository *accountRepository) GetAccount(ctx context.Context, logi
 	return account, nil
 }
 
+func (accountRepository *accountRepository) ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error {
+	query := `	
+		UPDATE accounts
+		SET balance = balance + :amount
+		WHERE id = :accountID
+	`
+
+	_, err := accountRepository.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"amount":    amount,
+		"accountID": accountID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

@@ -16,3 +16,7 @@ type AccountSettingsUsecases interface {
 	AddUserInfoToAccount(ctx context.Context, user *entities.User) error
 	GetUserById(ctx context.Context, userID string) (*entities.User, error)
 }
+
+type MoneyOperationsUsecases interface {
+	ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error
+}

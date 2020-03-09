@@ -17,15 +17,20 @@ import (
 )
 
 type Server struct {
-	httpServer         *http.Server
-	authService        *_authHttpAdapter.AuthService
-	accSettingsService *_authHttpAdapter.AccountSettingsService
+	httpServer             *http.Server
+	authService            *_authHttpAdapter.AuthService
+	accSettingsService     *_authHttpAdapter.AccountSettingsService
+	moneyOperationsService *_authHttpAdapter.MoneyOperationsService
 }
 
-func NewServer(authService *_authHttpAdapter.AuthService, accSettingsService *_authHttpAdapter.AccountSettingsService) *Server {
+func NewServer(
+	authService *_authHttpAdapter.AuthService,
+	accSettingsService *_authHttpAdapter.AccountSettingsService,
+	moneyOpService *_authHttpAdapter.MoneyOperationsService) *Server {
 	return &Server{
-		authService:        authService,
-		accSettingsService: accSettingsService,
+		authService:            authService,
+		accSettingsService:     accSettingsService,
+		moneyOperationsService: moneyOpService,
 	}
 }
 
@@ -65,6 +70,9 @@ func (server *Server) handler() http.Handler {
 	api.HandleFunc("/hi", hi)
 	api.HandleFunc("/addUserInfo", server.accSettingsService.AddUserInfoToAccount).Methods("POST")
 	api.HandleFunc("/getUserInfo", server.accSettingsService.GetUserById).Methods("GET")
+
+	api.HandleFunc("/replenishmentBalance", server.moneyOperationsService.ReplenishmentBalance).Methods("POST")
+
 	api.Use(server.authService.Middleware.VerifyToken)
 
 	return r
