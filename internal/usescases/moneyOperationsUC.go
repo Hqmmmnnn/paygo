@@ -22,5 +22,5 @@ func (moneyOpUC *MoneyOperationsUsecases) ReplenishmentBalance(ctx context.Conte
 		return err
 	}
 
-	return  nil
+	return nil
 }

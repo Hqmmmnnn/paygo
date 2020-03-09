@@ -38,9 +38,9 @@ func (accountRepository *accountRepository) SaveAccount(ctx context.Context, acc
 	return err
 }
 
-func (accountRepository *accountRepository) GetAccount(ctx context.Context, login string) (*entities.Account, error) {
+func (accountRepository *accountRepository) GetAccount(ctx context.Context, accountID string) (*entities.Account, error) {
 	account := &entities.Account{}
-	err := accountRepository.db.Get(account, "SELECT * FROM accounts WHERE login=$1", login)
+	err := accountRepository.db.Get(account, "SELECT * FROM accounts WHERE id=$1", accountID)
 	if err != nil {
 		return nil, err
 	}

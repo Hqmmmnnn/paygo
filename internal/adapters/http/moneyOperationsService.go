@@ -16,7 +16,7 @@ type MoneyOperationsService struct {
 
 func NewMoneyOperationsService(moneyOpUC interfaces.MoneyOperationsUsecases) *MoneyOperationsService {
 	return &MoneyOperationsService{
-		MoneyOperationsUC:moneyOpUC,
+		MoneyOperationsUC: moneyOpUC,
 	}
 }
 
@@ -26,7 +26,7 @@ type ReplenishmentBalanceInput struct {
 
 func (moneyOpService *MoneyOperationsService) ReplenishmentBalance(w http.ResponseWriter, r *http.Request) {
 	account := r.Context().Value("account").(*entities.Account)
-	ctx, cancel := context.WithTimeout(context.Background(), 2 * time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
 
 	balanceInput := &ReplenishmentBalanceInput{}
