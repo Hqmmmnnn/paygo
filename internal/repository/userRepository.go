@@ -17,23 +17,21 @@ func NewUserRepository(db *sqlx.DB) interfaces.UserRepository {
 	return &UserRepository{db: db}
 }
 
-func (userRep *UserRepository) AddUserInfoToAccount(ctx context.Context, user *entities.User, accountId string) error {
+func (userRep *UserRepository) AddUserInfoToAccount(ctx context.Context, user *entities.User) error {
 	userUUID, err := uuid.FromString(user.ID)
 	if err != nil {
 		return err
 	}
 
-	accUUID, err := uuid.FromString(accountId)
-	if err != nil {
-		return err
-	}
+	query := `	
+		INSERT INTO users(id, first_name, last_name, patronymic)
+		VALUES (:id, :first_name, :last_name, :patronymic)
+	`
 
-	_, err = userRep.db.NamedExecContext(ctx, `CALL add_user_info_in_account(:accID, :userID, :fName, :lName, :patronymic)`,
-		map[string]interface{}{
-			"accID":      accUUID,
-			"userID":     userUUID,
-			"fName":      user.FirstName,
-			"lName":      user.LastName,
+	_, err = userRep.db.NamedExecContext(ctx, query, map[string]interface{}{
+			"id":         userUUID,
+			"first_name": user.FirstName,
+			"last_name":  user.LastName,
 			"patronymic": user.Patronymic,
 		})
 

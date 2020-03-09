@@ -7,7 +7,7 @@ import (
 )
 
 type UserRepository interface {
-	AddUserInfoToAccount(ctx context.Context, user *entities.User, accountId string) error
+	AddUserInfoToAccount(ctx context.Context, user *entities.User) error
 	GetUser(ctx context.Context, userID string) (*entities.User, error)
 }
 

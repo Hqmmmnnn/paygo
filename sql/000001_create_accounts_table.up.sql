@@ -1,6 +1,5 @@
 CREATE TABLE IF NOT EXISTS accounts (
     id uuid PRIMARY KEY,
-    user_id uuid REFERENCES users(id) ON UPDATE CASCADE,
     email VARCHAR(40) NOT NULL UNIQUE,
     login VARCHAR(40) NOT NULL UNIQUE,
     password VARCHAR NOT NULL,

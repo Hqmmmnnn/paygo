@@ -19,8 +19,8 @@ func NewAccountSettingsUsecases(userRep interfaces.UserRepository, accRep interf
 	}
 }
 
-func (accSettingsUC *AccountSettingsUsecases) AddUserInfoToAccount(ctx context.Context, user *entities.User, accountID string) error {
-	err := accSettingsUC.UserRepository.AddUserInfoToAccount(ctx, user, accountID)
+func (accSettingsUC *AccountSettingsUsecases) AddUserInfoToAccount(ctx context.Context, user *entities.User) error {
+	err := accSettingsUC.UserRepository.AddUserInfoToAccount(ctx, user)
 	if err != nil {
 		return err
 	}
