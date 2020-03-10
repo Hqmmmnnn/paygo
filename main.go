@@ -44,7 +44,11 @@ func main() {
 	accSettingsUC := usescases.NewAccountSettingsUsecases(userRepository, accountRepository)
 	accSettingsService := _authHttpAdapter.NewAccountSettingsService(accSettingsUC)
 
-	serv := server.NewServer(authService, accSettingsService)
+	transferRepository := repository.NewTransferRepository(dbConnection)
+	moneyOperationsUC := usescases.NewMoneyOperationsUsecases(accountRepository, transferRepository)
+	moneyOperationsService := _authHttpAdapter.NewMoneyOperationsService(moneyOperationsUC)
+
+	serv := server.NewServer(authService, accSettingsService, moneyOperationsService)
 	port := cfg.GetPort()
 	if err := serv.Run(port); err != nil {
 		log.Fatal(err.Error())

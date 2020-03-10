@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Hqqm/paygo/internal/entities"
+	"github.com/jmoiron/sqlx"
 )
 
 type UserRepository interface {
@@ -14,4 +15,11 @@ type UserRepository interface {
 type AccountRepository interface {
 	SaveAccount(ctx context.Context, account *entities.Account) error
 	GetAccount(ctx context.Context, login string) (*entities.Account, error)
+	ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error
+	MoneyTransfer(ctx context.Context, tx *sqlx.Tx, senderLogin, recipientLogin string, amount float64) error
+}
+
+type TransferRepository interface {
+	InsertMoneyTransferData(ctx context.Context, tx *sqlx.Tx, moneyTransferID, senderLogin, recipientLogin, comment string, amount float64) error
+	GetDbConnection() *sqlx.DB
 }

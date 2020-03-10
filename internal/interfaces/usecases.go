@@ -15,4 +15,10 @@ type AuthUsecases interface {
 type AccountSettingsUsecases interface {
 	AddUserInfoToAccount(ctx context.Context, user *entities.User) error
 	GetUserById(ctx context.Context, userID string) (*entities.User, error)
+	GetAccountByLogin(ctx context.Context, login string) (*entities.Account, error)
+}
+
+type MoneyOperationsUsecases interface {
+	ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error
+	MoneyTransfer(ctx context.Context, moneyTransferID, senderLogin, recipientLogin, comment string, amount float64) error
 }

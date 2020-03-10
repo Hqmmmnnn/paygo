@@ -29,11 +29,11 @@ func (userRep *UserRepository) AddUserInfoToAccount(ctx context.Context, user *e
 	`
 
 	_, err = userRep.db.NamedExecContext(ctx, query, map[string]interface{}{
-			"id":         userUUID,
-			"first_name": user.FirstName,
-			"last_name":  user.LastName,
-			"patronymic": user.Patronymic,
-		})
+		"id":         userUUID,
+		"first_name": user.FirstName,
+		"last_name":  user.LastName,
+		"patronymic": user.Patronymic,
+	})
 
 	return err
 }

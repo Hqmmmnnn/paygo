@@ -48,3 +48,53 @@ func (accountRepository *accountRepository) GetAccount(ctx context.Context, logi
 	return account, nil
 }
 
+func (accountRepository *accountRepository) ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error {
+	query := `	
+		UPDATE accounts
+		SET balance = balance + :amount
+		WHERE id = :accountID
+	`
+
+	_, err := accountRepository.db.NamedExecContext(ctx, query, map[string]interface{}{
+		"amount":    amount,
+		"accountID": accountID,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (accountRepository *accountRepository) MoneyTransfer(ctx context.Context, tx *sqlx.Tx, senderLogin, recipientLogin string, amount float64) error {
+	updateSenderQuery := `
+		UPDATE accounts
+		SET balance = balance - :amount
+		WHERE login = :senderLogin
+	`
+
+	_, err := tx.NamedExecContext(ctx, updateSenderQuery, map[string]interface{}{
+		"amount":      amount,
+		"senderLogin": senderLogin,
+	})
+	if err != nil {
+		return err
+	}
+
+	updateRecipientQuery := `
+		UPDATE accounts
+		SET balance = balance + :amount
+		WHERE login = :recipientLogin
+	`
+
+	_, err = accountRepository.db.NamedExecContext(ctx, updateRecipientQuery, map[string]interface{}{
+		"amount":         amount,
+		"recipientLogin": recipientLogin,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
