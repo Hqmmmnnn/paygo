@@ -21,5 +21,5 @@ type AccountRepository interface {
 
 type TransferRepository interface {
 	InsertMoneyTransferData(ctx context.Context, tx *sqlx.Tx, moneyTransferID, senderLogin, recipientLogin, comment string, amount float64) error
-	Transaction(txFunc func(*sqlx.Tx) error) (err error)
+	GetDbConnection() *sqlx.DB
 }

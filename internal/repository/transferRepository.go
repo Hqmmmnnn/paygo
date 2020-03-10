@@ -15,7 +15,7 @@ func NewTransferRepository(db *sqlx.DB) interfaces.TransferRepository {
 	return &transferRepository{db: db}
 }
 
-func (transferRepository *transferRepository) getDbConnection() *sqlx.DB {
+func (transferRepository *transferRepository) GetDbConnection() *sqlx.DB {
 	return transferRepository.db
 }
 
@@ -38,26 +38,4 @@ func (transferRepository *transferRepository) InsertMoneyTransferData(ctx contex
 	}
 
 	return nil
-}
-
-func (transferRepository *transferRepository) Transaction(txFunc func(*sqlx.Tx) error) (err error) {
-	db := transferRepository.getDbConnection()
-	tx, err := db.Beginx()
-	if err != nil {
-		return err
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback()
-		} else if err != nil {
-			tx.Rollback()
-		} else {
-			err = tx.Commit()
-		}
-	}()
-
-	err = txFunc(tx)
-
-	return err
 }
