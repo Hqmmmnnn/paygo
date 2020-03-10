@@ -55,13 +55,13 @@ func (accSettingsService *AccountSettingsService) GetUserById(w http.ResponseWri
 	_lib.MarshalJsonAndWrite(user, w)
 }
 
-func (accSettingsService *AccountSettingsService) GetAccountById(w http.ResponseWriter, r *http.Request) {
+func (accSettingsService *AccountSettingsService) GetAccountByLogin(w http.ResponseWriter, r *http.Request) {
 	acc := r.Context().Value("account").(*entities.Account)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 
-	account, err := accSettingsService.ProfileUseCases.GetAccountById(ctx, acc.ID)
+	account, err := accSettingsService.ProfileUseCases.GetAccountByLogin(ctx, acc.Login)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

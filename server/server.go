@@ -70,9 +70,10 @@ func (server *Server) handler() http.Handler {
 	api.HandleFunc("/hi", hi)
 	api.HandleFunc("/addUserInfo", server.accSettingsService.AddUserInfoToAccount).Methods("POST")
 	api.HandleFunc("/getUserInfo", server.accSettingsService.GetUserById).Methods("GET")
-	api.HandleFunc("/getAccount", server.accSettingsService.GetAccountById).Methods("GET")
+	api.HandleFunc("/getAccount", server.accSettingsService.GetAccountByLogin).Methods("GET")
 
 	api.HandleFunc("/replenishmentBalance", server.moneyOperationsService.ReplenishmentBalance).Methods("POST")
+	api.HandleFunc("/transferMoney", server.moneyOperationsService.MoneyTransfer).Methods("POST")
 
 	api.Use(server.authService.Middleware.VerifyToken)
 

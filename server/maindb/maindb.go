@@ -22,7 +22,6 @@ func NewPgStorage(dsn string) (*PgStorage, error) {
 	return &PgStorage{db: db}, nil
 }
 
-// GetDB ...
 func (pg *PgStorage) GetDBConnection() *sqlx.DB {
 	return pg.db
 }

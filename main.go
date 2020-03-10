@@ -44,7 +44,8 @@ func main() {
 	accSettingsUC := usescases.NewAccountSettingsUsecases(userRepository, accountRepository)
 	accSettingsService := _authHttpAdapter.NewAccountSettingsService(accSettingsUC)
 
-	moneyOperationsUC := usescases.NewMoneyOperationsUsecases(accountRepository)
+	transferRepository := repository.NewTransferRepository(dbConnection)
+	moneyOperationsUC := usescases.NewMoneyOperationsUsecases(accountRepository, transferRepository)
 	moneyOperationsService := _authHttpAdapter.NewMoneyOperationsService(moneyOperationsUC)
 
 	serv := server.NewServer(authService, accSettingsService, moneyOperationsService)

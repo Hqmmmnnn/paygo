@@ -37,8 +37,8 @@ func (accSettingsUC *AccountSettingsUsecases) GetUserById(ctx context.Context, u
 	return user, nil
 }
 
-func (accSettingsUC *AccountSettingsUsecases) GetAccountById(ctx context.Context, accountID string) (*entities.Account, error) {
-	account, err := accSettingsUC.AccountRepository.GetAccount(ctx, accountID)
+func (accSettingsUC *AccountSettingsUsecases) GetAccountByLogin(ctx context.Context, login string) (*entities.Account, error) {
+	account, err := accSettingsUC.AccountRepository.GetAccount(ctx, login)
 	if err != nil {
 		return nil, err
 	}
