@@ -1,8 +1,0 @@
-CREATE TABLE IF NOT EXISTS transfers (
-    id uuid PRIMARY KEY,
-    sender_login VARCHAR(40) NOT NULL REFERENCES accounts(login) ON UPDATE CASCADE,
-    recipient_login VARCHAR(40) NOT NULL REFERENCES accounts(login) ON UPDATE CASCADE,
-    comment TEXT,
-    amount NUMERIC(20, 2) NOT NULL,
-    date TIMESTAMPTZ NOT NULL DEFAULT CURRENT_TIMESTAMP
-)
