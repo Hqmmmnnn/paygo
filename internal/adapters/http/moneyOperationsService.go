@@ -21,6 +21,7 @@ func NewMoneyOperationsService(moneyOpUC interfaces.MoneyOperationsUsecases) *Mo
 }
 
 type ReplenishmentBalanceInput struct {
+	ID     string  `json:"id"`
 	Amount float64 `json:"amount"`
 }
 
@@ -35,7 +36,7 @@ func (moneyOpService *MoneyOperationsService) ReplenishmentBalance(w http.Respon
 		return
 	}
 
-	err := moneyOpService.MoneyOperationsUC.ReplenishmentBalance(ctx, account.ID, balanceInput.Amount)
+	err := moneyOpService.MoneyOperationsUC.ReplenishmentBalance(ctx, balanceInput.ID, account.Login, balanceInput.Amount)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

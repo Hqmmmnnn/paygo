@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/Hqqm/paygo/internal/_lib"
+	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/Hqqm/paygo/internal/interfaces"
 )
 
@@ -74,4 +75,10 @@ func (as *AuthService) SignIn(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_lib.MarshalJsonAndWrite(&signInResponse{Token: token}, w)
+}
+
+func (as *AuthService) GetAccount(w http.ResponseWriter, r *http.Request) {
+	acc := r.Context().Value("account").(*entities.Account)
+
+	_lib.MarshalJsonAndWrite(acc, w)
 }
