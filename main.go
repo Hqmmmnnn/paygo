@@ -36,15 +36,16 @@ func main() {
 	tokenTTL := viper.GetDuration("auth.token_ttl")
 
 	accountRepository := repository.NewAccountRepository(dbConnection)
+	userRepository := repository.NewUserRepository(dbConnection)
+	transferRepository := repository.NewTransferRepository(dbConnection)
+
 	authUC := usescases.NewAuthUsecases(accountRepository, signingKey, tokenTTL)
 	authMiddleware := _authHttpAdapter.NewAuthMiddleware(authUC)
 	authService := _authHttpAdapter.NewAuthService(authUC, *authMiddleware)
 
-	userRepository := repository.NewUserRepository(dbConnection)
 	accSettingsUC := usescases.NewAccountSettingsUsecases(userRepository, accountRepository)
 	accSettingsService := _authHttpAdapter.NewAccountSettingsService(accSettingsUC)
 
-	transferRepository := repository.NewTransferRepository(dbConnection)
 	moneyOperationsUC := usescases.NewMoneyOperationsUsecases(accountRepository, transferRepository)
 	moneyOperationsService := _authHttpAdapter.NewMoneyOperationsService(moneyOperationsUC)
 

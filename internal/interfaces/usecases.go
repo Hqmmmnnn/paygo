@@ -19,6 +19,7 @@ type AccountSettingsUsecases interface {
 }
 
 type MoneyOperationsUsecases interface {
-	ReplenishmentBalance(ctx context.Context, accountID string, amount float64) error
+	ReplenishmentBalance(ctx context.Context, moneyTransferId, recipientLogin string, amount float64) error
 	MoneyTransfer(ctx context.Context, moneyTransferID, senderLogin, recipientLogin, comment string, amount float64) error
+	GetTransfersHistory(ctx context.Context, login string) (*[]entities.Transfer, error)
 }

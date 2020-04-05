@@ -10,9 +10,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/Hqqm/paygo/internal/_lib"
 	_authHttpAdapter "github.com/Hqqm/paygo/internal/adapters/http"
-	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/gorilla/mux"
 )
 
@@ -67,21 +65,15 @@ func (server *Server) handler() http.Handler {
 	auth.HandleFunc("/signIn", server.authService.SignIn).Methods("POST")
 
 	api := r.PathPrefix("/api").Subrouter()
-	api.HandleFunc("/hi", hi)
 	api.HandleFunc("/addUserInfo", server.accSettingsService.AddUserInfoToAccount).Methods("POST")
 	api.HandleFunc("/getUserInfo", server.accSettingsService.GetUserById).Methods("GET")
 	api.HandleFunc("/getAccount", server.accSettingsService.GetAccountByLogin).Methods("GET")
 
 	api.HandleFunc("/replenishmentBalance", server.moneyOperationsService.ReplenishmentBalance).Methods("POST")
 	api.HandleFunc("/transferMoney", server.moneyOperationsService.MoneyTransfer).Methods("POST")
+	api.HandleFunc("/transfersHistory", server.moneyOperationsService.GetTransfersHistory).Methods("GET")
 
 	api.Use(server.authService.Middleware.VerifyToken)
 
 	return r
-}
-
-func hi(w http.ResponseWriter, r *http.Request) {
-	if account := r.Context().Value("account").(*entities.Account); account != nil {
-		_lib.MarshalJsonAndWrite(account, w)
-	}
 }

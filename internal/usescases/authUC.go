@@ -56,12 +56,12 @@ func (authUC *AuthUsecases) SignUp(ctx context.Context, accountID, email, login,
 func (authUC *AuthUsecases) SignIn(ctx context.Context, login, password string) (string, error) {
 	account, err := authUC.AccountRepository.GetAccount(ctx, login)
 	if err != nil {
-		return "", err
+		return "", errors.New("incorrect login or password")
 	}
 
 	err = bcrypt.CompareHashAndPassword([]byte(account.Password), []byte(password))
 	if err != nil && err == bcrypt.ErrMismatchedHashAndPassword {
-		return "", err
+		return "", errors.New("incorrect login or password")
 	}
 
 	claims := AuthClaims{

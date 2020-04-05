@@ -1,8 +1,6 @@
 package entities
 
-import (
-	"time"
-)
+import "time"
 
 type Transfer struct {
 	ID             string    `json:"id" db:"id"`
