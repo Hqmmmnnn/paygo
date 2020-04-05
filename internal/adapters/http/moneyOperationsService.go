@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/Hqqm/paygo/internal/_lib"
 	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/Hqqm/paygo/internal/interfaces"
 )
@@ -73,4 +74,23 @@ func (moneyOpService *MoneyOperationsService) MoneyTransfer(w http.ResponseWrite
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+}
+
+type GetTransferHistoryResponse struct {
+	TransfersHistory *[]entities.Transfer `json:"transfers_history "`
+}
+
+func (moneyOpService *MoneyOperationsService) GetTransfersHistory(w http.ResponseWriter, r *http.Request) {
+	account := r.Context().Value("account").(*entities.Account)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	transfers, err := moneyOpService.MoneyOperationsUC.GetTransfersHistory(ctx, account.Login)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_lib.MarshalJsonAndWrite(&GetTransferHistoryResponse{TransfersHistory: transfers}, w)
 }

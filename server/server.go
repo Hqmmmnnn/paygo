@@ -71,6 +71,7 @@ func (server *Server) handler() http.Handler {
 
 	api.HandleFunc("/replenishmentBalance", server.moneyOperationsService.ReplenishmentBalance).Methods("POST")
 	api.HandleFunc("/transferMoney", server.moneyOperationsService.MoneyTransfer).Methods("POST")
+	api.HandleFunc("/transfersHistory", server.moneyOperationsService.GetTransfersHistory).Methods("GET")
 
 	api.Use(server.authService.Middleware.VerifyToken)
 

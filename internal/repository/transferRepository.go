@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 
+	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/Hqqm/paygo/internal/interfaces"
 	"github.com/jmoiron/sqlx"
 )
@@ -38,4 +39,17 @@ func (transferRepository *transferRepository) InsertMoneyTransferData(ctx contex
 	}
 
 	return nil
+}
+
+func (transferRepository *transferRepository) GetTransfers(ctx context.Context, login string) (*[]entities.Transfer, error) {
+	transfers := []entities.Transfer{}
+	query := "SELECT * FROM transfers WHERE sender_login=$1 OR recipient_login=$1"
+
+	err := transferRepository.db.SelectContext(ctx, &transfers, query, login)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &transfers, nil
 }

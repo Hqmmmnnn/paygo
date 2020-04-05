@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/Hqqm/paygo/internal/_lib"
+	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/Hqqm/paygo/internal/interfaces"
 	"github.com/jmoiron/sqlx"
 )
@@ -66,4 +67,14 @@ func (moneyOpUC *MoneyOperationsUsecases) MoneyTransfer(ctx context.Context, mon
 	}
 
 	return nil
+}
+
+func (moneyOpUC *MoneyOperationsUsecases) GetTransfersHistory(ctx context.Context, login string) (*[]entities.Transfer, error) {
+	transfers, err := moneyOpUC.transferRepository.GetTransfers(ctx, login)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transfers, nil
 }
