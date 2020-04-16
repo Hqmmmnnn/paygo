@@ -76,9 +76,6 @@ func (moneyOpService *MoneyOperationsService) MoneyTransfer(w http.ResponseWrite
 	}
 }
 
-type GetTransferHistoryResponse struct {
-	TransfersHistory *[]entities.Transfer `json:"transfers_history "`
-}
 
 func (moneyOpService *MoneyOperationsService) GetTransfersHistory(w http.ResponseWriter, r *http.Request) {
 	account := r.Context().Value("account").(*entities.Account)
@@ -92,5 +89,5 @@ func (moneyOpService *MoneyOperationsService) GetTransfersHistory(w http.Respons
 		return
 	}
 
-	_lib.MarshalJsonAndWrite(&GetTransferHistoryResponse{TransfersHistory: transfers}, w)
+	_lib.MarshalJsonAndWrite(transfers, w)
 }

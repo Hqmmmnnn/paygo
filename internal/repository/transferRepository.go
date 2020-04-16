@@ -2,6 +2,8 @@ package repository
 
 import (
 	"context"
+	"fmt"
+	"strings"
 
 	"github.com/Hqqm/paygo/internal/entities"
 	"github.com/Hqqm/paygo/internal/interfaces"
@@ -43,9 +45,15 @@ func (transferRepository *transferRepository) InsertMoneyTransferData(ctx contex
 
 func (transferRepository *transferRepository) GetTransfers(ctx context.Context, login string) (*[]entities.Transfer, error) {
 	transfers := []entities.Transfer{}
-	query := "SELECT * FROM transfers WHERE sender_login=$1 OR recipient_login=$1"
+	query := "SELECT * FROM (SELECT * FROM transfers WHERE sender_login=$1 OR recipient_login=$1) allUserTransfers order by date DESC"
 
 	err := transferRepository.db.SelectContext(ctx, &transfers, query, login)
+
+	for i := 0; i < len(transfers); i++ {
+		d := strings.Split(transfers[i].Date, "T")
+		t := strings.Split(d[1], ".")
+		transfers[i].Date = fmt.Sprintf("%s %s", d[0], t[0])
+	}
 
 	if err != nil {
 		return nil, err
