@@ -61,3 +61,19 @@ func (transferRepository *transferRepository) GetTransfers(ctx context.Context, 
 
 	return &transfers, nil
 }
+
+func (transferRepository *transferRepository) GetTransferById(ctx context.Context, transferId string) (*entities.Transfer, error) {
+	transfer := &entities.Transfer{}
+
+	err := transferRepository.db.Get(transfer, "SELECT * FROM transfers WHERE id=$1", transferId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	d := strings.Split(transfer.Date, "T")
+	t := strings.Split(d[1], ".")
+	transfer.Date = fmt.Sprintf("%s %s", d[0], t[0])
+
+	return transfer, nil
+}

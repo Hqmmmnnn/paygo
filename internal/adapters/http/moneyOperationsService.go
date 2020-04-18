@@ -76,7 +76,6 @@ func (moneyOpService *MoneyOperationsService) MoneyTransfer(w http.ResponseWrite
 	}
 }
 
-
 func (moneyOpService *MoneyOperationsService) GetTransfersHistory(w http.ResponseWriter, r *http.Request) {
 	account := r.Context().Value("account").(*entities.Account)
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
@@ -90,4 +89,29 @@ func (moneyOpService *MoneyOperationsService) GetTransfersHistory(w http.Respons
 	}
 
 	_lib.MarshalJsonAndWrite(transfers, w)
+}
+
+type GetTransferByIdData struct {
+	ID string `json:"id" `
+}
+
+func (moneyOpService *MoneyOperationsService) GetTransferById(w http.ResponseWriter, r *http.Request) {
+	getTransferByIdData := &GetTransferByIdData{}
+
+	if err := json.NewDecoder(r.Body).Decode(getTransferByIdData); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancel()
+
+	transfer, err := moneyOpService.MoneyOperationsUC.GetTransferById(ctx, getTransferByIdData.ID)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	_lib.MarshalJsonAndWrite(transfer, w)
 }

@@ -78,3 +78,13 @@ func (moneyOpUC *MoneyOperationsUsecases) GetTransfersHistory(ctx context.Contex
 
 	return transfers, nil
 }
+
+func (moneyOpUC *MoneyOperationsUsecases) GetTransferById(ctx context.Context, transferId string) (*entities.Transfer, error) {
+	transfer, err := moneyOpUC.transferRepository.GetTransferById(ctx, transferId)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return transfer, err
+}
